@@ -43,7 +43,7 @@ Template/
 │   └── workflows/                 # GitHub Actions workflows
 ├── docs/                          # Documentation
 ├── src/
-│   └── my_project/                # Main package
+│   └── manager_mosaic/                # Main package
 ├── tests/                         # Test suite
 ├── Issues.txt                     # Agent issue queue
 ├── pyproject.toml                 # Project configuration
