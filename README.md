@@ -1,222 +1,28 @@
-# Template
+# Manager-Mosaic
 
-A template Python repository with [stranske/Workflows](https://github.com/stranske/Workflows) CI integration and CLI Codex agent automation.
+Every source of manager communication says something about the same investment. This repo holds the model that lets those statements be compared: a **fact** that carries the **evidence** it came from, contradictions that surface on their own, and a written **investment thesis** monitored against what the documents actually say.
 
-## Features
+Created 2026-09-04 on the owner's decision, after an inventory of the work environment found the nearest existing tool to be phase one only: a hand-edited data file rendered to a single page, with no comparable synthesis view yet.
 
-- 🐍 **Python 3.11+** - Modern Python with type hints
-- 🔧 **Ruff** - Fast Python linting and formatting
-- 🔍 **MyPy** - Strict type checking
-- 🧪 **Pytest** - Testing with 80% coverage requirement
-- 🤖 **CLI Codex Automation** - Gate-triggered keepalive for automated development
-- 🔄 **Dual Checkout Pattern** - Consumer repo + centralized Workflows scripts
+## What it is and is not
 
-## Quick Start
+- **It is** the fact, evidence, entity, period, theme, thesis and gap model, its validator, discrepancy detection, and thesis monitoring.
+- **It is not** a document reader. Document identity and text extraction with page pointers belong to `stranske/Doc-Lineage`.
+- **It is not** a renderer. Hubs, decks and memos belong to `stranske/Deliverable-Render`.
 
-```bash
-# Clone the repository
-git clone https://github.com/stranske/Template.git
-cd Template
+That split is deliberate: the same three concerns are currently solved three times over in the work environment, once per tracker.
 
-# Install in development mode
-pip install -e ".[dev]"
+## Invariants taken from real failures, not from theory
 
-# Run tests
-pytest
+1. **Silence is weak evidence, never proof.** A position missing from a document is a gap, not an exit. Inferring a removal from an absence has already produced a wrong finding.
+2. **Valid is not undamaged.** A structured file can parse cleanly and still be corrupt: a text substitution once turned a dollar figure into a bare suffix, and a single mistyped identifier once made a whole record vanish from a rendered view with no error. The validator exists to catch exactly this class, and it reports every violation in one pass.
+3. **An inference is labelled as one.** Every fact carries its source, and anything derived rather than observed is marked, so the two can never be read as the same thing.
+4. **One-click back to the document.** A fact whose evidence cannot be opened is not usable for a decision.
 
-# Run linting
-ruff check src/ tests/
+## Data and hosting
 
-# Run type checking
-mypy src/ tests/
-```
+Synthetic and public inputs only in this repository; no proprietary manager material is ever committed or used in tests. Nothing server-hosted or database-backed runs in the target environment today, so the model works as files and a local command. That is a current constraint rather than a permanent one: where a hosted or database-backed component would genuinely serve a goal that files cannot, the design records the goal, why a local shape cannot reach it, and the accommodation the work IT team would need to grant.
 
-## Project Structure
+## Interoperability
 
-```
-Template/
-├── .github/
-│   ├── codex/
-│   │   ├── AGENT_INSTRUCTIONS.md  # Codex agent guidelines
-│   │   └── prompts/               # Task execution templates
-│   ├── scripts/                   # Agent automation scripts (dual checkout from Workflows)
-│   └── workflows/                 # GitHub Actions workflows
-├── docs/                          # Documentation
-├── src/
-│   └── manager_mosaic/                # Main package
-├── tests/                         # Test suite
-├── Issues.txt                     # Agent issue queue
-├── pyproject.toml                 # Project configuration
-└── README.md
-```
-
-## Workflows
-
-This repository uses reusable workflows from [stranske/Workflows](https://github.com/stranske/Workflows):
-
-### Core CI & Quality
-
-| Workflow | Purpose | Trigger |
-|----------|---------|---------|
-| **Gate** | PR validation (CI, lint, tests) | Pull request |
-| **CI** | Push-to-main continuous integration | Push to main |
-| **Autofix** | Automatic lint/format fixes | Label: `autofix` |
-
-### Agent Workflows (CLI Codex)
-
-| Workflow | Purpose | Trigger |
-|----------|---------|---------|
-| **Keepalive Loop** | Runs Codex CLI after Gate passes | Gate completion, PR label |
-| **PR Meta** | Updates PR status summaries | PR events |
-| **Issue Intake** | Creates PRs from labeled issues | Issue labeled |
-| **Guard** | Security checks for agent execution | Before agent runs |
-| **Bot Comment Handler** | Processes @codex commands | Issue comments |
-| **Autofix Loop** | Autofix integration with keepalive | Autofix + agent label |
-
-**Note:** `agents-orchestrator.yml` is legacy and can be removed. The current architecture uses `agents-keepalive-loop.yml` which integrates with the Gate workflow for event-driven triggering.
-
-## Agent Automation
-
-This template uses the **Gate-triggered keepalive** architecture:
-
-### How It Works
-
-1. **Create Issue** with structured Scope/Tasks/Acceptance sections
-2. **Label Issue** with `agent:codex`
-3. **Issue Intake** creates PR from issue
-4. **Gate Workflow** runs CI validation
-5. **Keepalive Loop** triggers after Gate completion
-   - Evaluates eligibility (unchecked tasks, no pause labels)
-   - Runs CLI Codex via `reusable-codex-run.yml`
-   - Codex implements changes and pushes commits
-6. **Gate Runs Again** → loop continues
-7. **Completion** when all acceptance criteria checked
-
-### Key Components
-
-- **Activation**: PR must have `agent:codex` label, Gate success, unchecked tasks
-- **Task Tracking**: Agent updates checkboxes in PR body after completing work
-- **Progress Detection**: Automatic checkbox reconciliation via session analysis
-- **Failure Handling**: After 3 failures, adds `needs-human` label and pauses
-- **Concurrency**: One keepalive run per PR (configurable via `agents:max-parallel:N`)
-
-### Control Labels
-
-| Label | Effect |
-|-------|--------|
-| `agent:codex` | Enables Codex automation |
-| `agents:pause` | Halts all agent activity |
-| `needs-human` | Auto-added after failures, blocks keepalive |
-| `agents:max-parallel:N` | Override concurrent run limit (default: 1) |
-
-### Using Issues.txt
-
-Add issues to `Issues.txt` using the structured format, then trigger the intake workflow:
-
-```
-1) Issue title here
-Labels: agent:codex, enhancement
-
-## Scope
-Explanation of what needs to be done and why.
-
-## Tasks
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
-
-## Acceptance Criteria
-- [ ] All tests pass
-- [ ] Code is documented
-- [ ] Coverage ≥80%
-
-Implementation notes
-- Technical details or constraints
-```
-
-## Setup for New Repos
-
-### Required Secrets
-
-| Secret | Purpose | Alternative |
-|--------|---------|-------------|
-| `CODEX_AUTH_JSON` | ChatGPT auth for Codex CLI | Recommended |
-| `WORKFLOWS_APP_ID` | GitHub App ID | Use with APP_PRIVATE_KEY |
-| `WORKFLOWS_APP_PRIVATE_KEY` | GitHub App private key | Use with APP_ID |
-| `SERVICE_BOT_PAT` | Bot PAT for automation | Required |
-| `OWNER_PR_PAT` | Owner PAT for PR operations | Optional |
-
-**Note:** Choose either `CODEX_AUTH_JSON` OR the GitHub App credentials, not both.
-
-### Required Environments
-
-Create in **Settings** → **Environments**:
-- `agent-standard` - For standard agent execution
-
-### Repository Variables
-
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `ALLOWED_KEEPALIVE_LOGINS` | Users who can trigger keepalive | `stranske` |
-
-### Branch Protection
-
-Configure branch protection for `main`:
-- Require status checks: `Gate / gate`
-- Require pull request reviews: 1 approval
-- Dismiss stale reviews on new commits
-
-## Development
-
-```bash
-# Install dependencies
-pip install -e ".[dev]"
-
-# Run all checks
-ruff check src/ tests/
-mypy src/ tests/
-pytest --cov
-
-# Format code
-ruff format src/ tests/
-```
-
-## Troubleshooting
-
-### Keepalive Not Triggering
-
-- Verify PR has `agent:codex` label
-- Check Gate workflow passed
-- Ensure PR body has unchecked tasks
-- Look for `agents:pause` or `needs-human` labels
-- Review keepalive summary comment for skip reasons
-
-### No Automated Status Summary
-
-- Verify issue has Scope/Tasks/Acceptance sections
-- Run `agents-pr-meta.yml` manually
-- Check PR links to source issue
-
-### Agent Failures
-
-After 3 failures, keepalive pauses and adds `needs-human`:
-1. Review failure reason in keepalive summary
-2. Fix the issue (code, prompt, auth)
-3. Remove `needs-human` label to resume
-
-### Permission Errors
-
-- Verify `CODEX_AUTH_JSON` or GitHub App credentials are set
-- Check environment `agent-standard` exists
-- Ensure PATs have required scopes: `repo`, `workflow`
-
-## Documentation
-
-- [Workflows Repo](https://github.com/stranske/Workflows) - Central workflow library
-- [Consumer README](https://github.com/stranske/Workflows/blob/main/templates/consumer-repo/README.md) - Complete setup guide
-- [Keepalive Architecture](https://github.com/stranske/Workflows/blob/main/docs/keepalive/GoalsAndPlumbing.md) - Detailed design
-- [Setup Checklist](docs/keepalive/SETUP_CHECKLIST.md) - Step-by-step configuration
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
+Field names come from the tool already in use rather than being invented here, and the store aligns with the fleet contracts in `docs/contracts/` (run records, artifact manifests, evidence objects, identity conventions).
