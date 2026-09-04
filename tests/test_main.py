@@ -1,6 +1,6 @@
-"""Tests for my_project module."""
+"""Tests for manager_mosaic module."""
 
-from my_project import __version__, add, greet
+from manager_mosaic import __version__, add, greet
 
 
 def test_version() -> None:
