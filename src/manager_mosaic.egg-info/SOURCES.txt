@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+src/manager_mosaic/__init__.py
+src/manager_mosaic.egg-info/PKG-INFO
+src/manager_mosaic.egg-info/SOURCES.txt
+src/manager_mosaic.egg-info/dependency_links.txt
+src/manager_mosaic.egg-info/requires.txt
+src/manager_mosaic.egg-info/top_level.txt
+tests/test_dependency_version_alignment.py
+tests/test_main.py
+tests/test_package_identity.py
+tests/test_repo_hygiene.py

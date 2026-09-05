@@ -1,0 +1,53 @@
+Metadata-Version: 2.4
+Name: manager-mosaic
+Version: 0.1.0
+Summary: Manager mosaic: evidence-linked facts, discrepancy detection, and investment-thesis monitoring across manager communication sources
+Author-email: Your Name <your.email@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/stranske/Template
+Project-URL: Repository, https://github.com/stranske/Template
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: dev
+Requires-Dist: pytest==9.1.1; extra == "dev"
+Requires-Dist: pytest-cov==7.1.0; extra == "dev"
+Requires-Dist: ruff==0.16.5; extra == "dev"
+Requires-Dist: mypy==2.3.1; extra == "dev"
+Requires-Dist: black==26.5.1; extra == "dev"
+Dynamic: license-file
+
+# Manager-Mosaic
+
+Every source of manager communication says something about the same investment. This repo holds the model that lets those statements be compared: a **fact** that carries the **evidence** it came from, contradictions that surface on their own, and a written **investment thesis** monitored against what the documents actually say.
+
+Created 2026-09-04 on the owner's decision, after an inventory of the work environment found the nearest existing tool to be phase one only: a hand-edited data file rendered to a single page, with no comparable synthesis view yet.
+
+## What it is and is not
+
+- **It is** the fact, evidence, entity, period, theme, thesis and gap model, its validator, discrepancy detection, and thesis monitoring.
+- **It is not** a document reader. Document identity and text extraction with page pointers belong to `stranske/Doc-Lineage`.
+- **It is not** a renderer. Hubs, decks and memos belong to `stranske/Deliverable-Render`.
+
+That split is deliberate: the same three concerns are currently solved three times over in the work environment, once per tracker.
+
+## Invariants taken from real failures, not from theory
+
+1. **Silence is weak evidence, never proof.** A position missing from a document is a gap, not an exit. Inferring a removal from an absence has already produced a wrong finding.
+2. **Valid is not undamaged.** A structured file can parse cleanly and still be corrupt: a text substitution once turned a dollar figure into a bare suffix, and a single mistyped identifier once made a whole record vanish from a rendered view with no error. The validator exists to catch exactly this class, and it reports every violation in one pass.
+3. **An inference is labelled as one.** Every fact carries its source, and anything derived rather than observed is marked, so the two can never be read as the same thing.
+4. **One-click back to the document.** A fact whose evidence cannot be opened is not usable for a decision.
+
+## Data and hosting
+
+Synthetic and public inputs only in this repository; no proprietary manager material is ever committed or used in tests. Nothing server-hosted or database-backed runs in the target environment today, so the model works as files and a local command. That is a current constraint rather than a permanent one: where a hosted or database-backed component would genuinely serve a goal that files cannot, the design records the goal, why a local shape cannot reach it, and the accommodation the work IT team would need to grant.
+
+## Interoperability
+
+Field names come from the tool already in use rather than being invented here, and the store aligns with the fleet contracts in `docs/contracts/` (run records, artifact manifests, evidence objects, identity conventions).
