@@ -11,3 +11,4 @@ tests/test_dependency_version_alignment.py
 tests/test_main.py
 tests/test_package_identity.py
 tests/test_repo_hygiene.py
+tests/test_repo_metadata.py

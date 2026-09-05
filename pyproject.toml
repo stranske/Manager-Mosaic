@@ -32,8 +32,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/stranske/Template"
-Repository = "https://github.com/stranske/Template"
+Homepage = "https://github.com/stranske/Manager-Mosaic"
+Repository = "https://github.com/stranske/Manager-Mosaic"
 
 [tool.setuptools.packages.find]
 where = ["src"]

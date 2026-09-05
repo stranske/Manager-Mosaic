@@ -4,8 +4,8 @@ Version: 0.1.0
 Summary: Manager mosaic: evidence-linked facts, discrepancy detection, and investment-thesis monitoring across manager communication sources
 Author-email: Your Name <your.email@example.com>
 License: MIT
-Project-URL: Homepage, https://github.com/stranske/Template
-Project-URL: Repository, https://github.com/stranske/Template
+Project-URL: Homepage, https://github.com/stranske/Manager-Mosaic
+Project-URL: Repository, https://github.com/stranske/Manager-Mosaic
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
