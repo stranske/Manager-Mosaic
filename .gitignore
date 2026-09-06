@@ -54,6 +54,9 @@ archives/metrics/
 
 # Build artifacts
 .autofix-venv/
+build/
+dist/
+*.egg-info/
 
 # PR automation generated files (MEDIUM conflict risk)
 pr_body.md
