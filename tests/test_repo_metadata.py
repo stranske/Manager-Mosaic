@@ -89,9 +89,40 @@ def test_author_placeholder_guard_detects_break_and_revert(
     ],
 )
 def test_author_placeholder_block_detects_break_and_revert(
-    tmp_path: Path, placement: str, name: str, email: str, invalid_field: str
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    placement: str,
+    name: str,
+    email: str,
+    invalid_field: str,
 ) -> None:
     """Reject full or partially corrected template authors, then accept the owner."""
+    root = Path(__file__).resolve().parents[1]
+    original = (root / "pyproject.toml").read_text()
+    metadata = tmp_path / "pyproject.toml"
+    monkeypatch.setitem(globals(), "__file__", str(tmp_path / "tests" / "test_repo_metadata.py"))
+    owner = '{name = "stranske", email = "noreply@users.noreply.github.com"}'
+    placeholder = f'{{name = "{name}", email = "{email}"}}'
+    replacement = {
+        "replace-owner": placeholder,
+        "before-owner": f"{placeholder},\n    {owner}",
+        "after-owner": f"{owner},\n    {placeholder}",
+    }[placement]
+    broken = original.replace(owner, replacement)
+    assert broken != original
+    metadata.write_text(broken)
+    try:
+        with pytest.raises(AssertionError, match=f"Template placeholder in author {invalid_field}"):
+            test_project_authors_are_not_template_placeholder()
+    finally:
+        metadata.write_text(original)
+    test_project_authors_are_not_template_placeholder()
+
+
+def test_named_author_guard_fails_for_placeholder_block_then_passes_after_revert(
+    tmp_path: Path,
+) -> None:
+    """Verify the acceptance scenario through pytest, including its exit status."""
     root = Path(__file__).resolve().parents[1]
     original = (root / "pyproject.toml").read_text()
     metadata = tmp_path / "pyproject.toml"
@@ -110,13 +141,8 @@ def test_author_placeholder_block_detects_break_and_revert(
         "not slow",
     ]
     owner = '{name = "stranske", email = "noreply@users.noreply.github.com"}'
-    placeholder = f'{{name = "{name}", email = "{email}"}}'
-    replacement = {
-        "replace-owner": placeholder,
-        "before-owner": f"{placeholder},\n    {owner}",
-        "after-owner": f"{owner},\n    {placeholder}",
-    }[placement]
-    broken = original.replace(owner, replacement)
+    placeholder = '{name = "Your Name", email = "your.email@example.com"}'
+    broken = original.replace(owner, placeholder)
     assert broken != original
     metadata.write_text(original)
     baseline = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
@@ -133,7 +159,7 @@ def test_author_placeholder_block_detects_break_and_revert(
             "test_repo_metadata.py::test_project_authors_are_not_template_placeholder FAILED"
             in failed.stdout
         ), failed.stdout
-        assert f"Template placeholder in author {invalid_field}" in failed.stdout
+        assert "Template placeholder in author name" in failed.stdout
     finally:
         metadata.write_text(original)
     passed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
