@@ -59,10 +59,19 @@ def test_author_placeholder_guard_detects_break_and_revert(
 
 
 @pytest.mark.parametrize("retain_owner", [False, True], ids=["replace-owner", "second-author"])
+@pytest.mark.parametrize(
+    ("name", "email", "invalid_field"),
+    [
+        ("Your Name", "your.email@example.com", "name"),
+        ("Your Name", "noreply@users.noreply.github.com", "name"),
+        ("stranske", "your.email@example.com", "email"),
+    ],
+    ids=["full-placeholder", "placeholder-name", "placeholder-email"],
+)
 def test_author_placeholder_block_detects_break_and_revert(
-    tmp_path: Path, retain_owner: bool
+    tmp_path: Path, retain_owner: bool, name: str, email: str, invalid_field: str
 ) -> None:
-    """Reject the original template author block and accept the restored owner."""
+    """Reject full or partially corrected template authors, then accept the owner."""
     root = Path(__file__).resolve().parents[1]
     original = (root / "pyproject.toml").read_text()
     metadata = tmp_path / "pyproject.toml"
@@ -80,14 +89,14 @@ def test_author_placeholder_block_detects_break_and_revert(
         "not slow",
     ]
     owner = '{name = "stranske", email = "noreply@users.noreply.github.com"}'
-    placeholder = '{name = "Your Name", email = "your.email@example.com"}'
+    placeholder = f'{{name = "{name}", email = "{email}"}}'
     replacement = f"{owner},\n    {placeholder}" if retain_owner else placeholder
     broken = original.replace(owner, replacement)
     assert broken != original
     metadata.write_text(broken)
     failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
     assert failed.returncode == pytest.ExitCode.TESTS_FAILED, failed.stdout + failed.stderr
-    assert "Template placeholder in author name" in failed.stdout
+    assert f"Template placeholder in author {invalid_field}" in failed.stdout
     metadata.write_text(original)
     passed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
     assert passed.returncode == pytest.ExitCode.OK, passed.stdout + passed.stderr
