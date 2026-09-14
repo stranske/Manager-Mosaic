@@ -82,6 +82,7 @@ def test_author_placeholder_block_detects_break_and_revert(
         sys.executable,
         "-m",
         "pytest",
+        "-v",
         "tests/test_repo_metadata.py::test_project_authors_are_not_template_placeholder",
         "-o",
         "addopts=",
@@ -96,7 +97,15 @@ def test_author_placeholder_block_detects_break_and_revert(
     metadata.write_text(broken)
     failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
     assert failed.returncode == pytest.ExitCode.TESTS_FAILED, failed.stdout + failed.stderr
+    assert (
+        "test_repo_metadata.py::test_project_authors_are_not_template_placeholder FAILED"
+        in failed.stdout
+    ), failed.stdout
     assert f"Template placeholder in author {invalid_field}" in failed.stdout
     metadata.write_text(original)
     passed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
     assert passed.returncode == pytest.ExitCode.OK, passed.stdout + passed.stderr
+    assert (
+        "test_repo_metadata.py::test_project_authors_are_not_template_placeholder PASSED"
+        in passed.stdout
+    ), passed.stdout
