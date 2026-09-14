@@ -119,8 +119,17 @@ def test_author_placeholder_block_detects_break_and_revert(
     test_project_authors_are_not_template_placeholder()
 
 
+@pytest.mark.parametrize(
+    ("name", "email", "invalid_field"),
+    [
+        ("Your Name", "your.email@example.com", "name"),
+        ("Your Name", "noreply@users.noreply.github.com", "name"),
+        ("stranske", "your.email@example.com", "email"),
+    ],
+    ids=["full-placeholder", "placeholder-name", "placeholder-email"],
+)
 def test_named_author_guard_fails_for_placeholder_block_then_passes_after_revert(
-    tmp_path: Path,
+    tmp_path: Path, name: str, email: str, invalid_field: str
 ) -> None:
     """Verify the acceptance scenario through pytest, including its exit status."""
     root = Path(__file__).resolve().parents[1]
@@ -141,7 +150,7 @@ def test_named_author_guard_fails_for_placeholder_block_then_passes_after_revert
         "not slow",
     ]
     owner = '{name = "stranske", email = "noreply@users.noreply.github.com"}'
-    placeholder = '{name = "Your Name", email = "your.email@example.com"}'
+    placeholder = f'{{name = "{name}", email = "{email}"}}'
     broken = original.replace(owner, placeholder)
     assert broken != original
     metadata.write_text(original)
@@ -159,7 +168,7 @@ def test_named_author_guard_fails_for_placeholder_block_then_passes_after_revert
             "test_repo_metadata.py::test_project_authors_are_not_template_placeholder FAILED"
             in failed.stdout
         ), failed.stdout
-        assert "Template placeholder in author name" in failed.stdout
+        assert f"Template placeholder in author {invalid_field}" in failed.stdout
     finally:
         metadata.write_text(original)
     passed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
