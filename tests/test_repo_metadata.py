@@ -52,9 +52,11 @@ def test_author_placeholder_guard_detects_break_and_revert(
     )
     assert broken != original
     metadata.write_text(broken)
-    with pytest.raises(AssertionError, match=f"Template placeholder in author {field}"):
-        test_project_authors_are_not_template_placeholder()
-    metadata.write_text(original)
+    try:
+        with pytest.raises(AssertionError, match=f"Template placeholder in author {field}"):
+            test_project_authors_are_not_template_placeholder()
+    finally:
+        metadata.write_text(original)
     test_project_authors_are_not_template_placeholder()
 
 
@@ -95,14 +97,16 @@ def test_author_placeholder_block_detects_break_and_revert(
     broken = original.replace(owner, replacement)
     assert broken != original
     metadata.write_text(broken)
-    failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
-    assert failed.returncode == pytest.ExitCode.TESTS_FAILED, failed.stdout + failed.stderr
-    assert (
-        "test_repo_metadata.py::test_project_authors_are_not_template_placeholder FAILED"
-        in failed.stdout
-    ), failed.stdout
-    assert f"Template placeholder in author {invalid_field}" in failed.stdout
-    metadata.write_text(original)
+    try:
+        failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
+        assert failed.returncode == pytest.ExitCode.TESTS_FAILED, failed.stdout + failed.stderr
+        assert (
+            "test_repo_metadata.py::test_project_authors_are_not_template_placeholder FAILED"
+            in failed.stdout
+        ), failed.stdout
+        assert f"Template placeholder in author {invalid_field}" in failed.stdout
+    finally:
+        metadata.write_text(original)
     passed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
     assert passed.returncode == pytest.ExitCode.OK, passed.stdout + passed.stderr
     assert (
