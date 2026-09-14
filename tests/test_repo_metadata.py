@@ -1,5 +1,7 @@
 """Keep published repository links aligned with the distribution identity."""
 
+import subprocess
+import sys
 import tomllib
 from pathlib import Path
 
@@ -56,21 +58,33 @@ def test_author_placeholder_guard_detects_break_and_revert(
     test_project_authors_are_not_template_placeholder()
 
 
-def test_author_placeholder_block_detects_break_and_revert(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_author_placeholder_block_detects_break_and_revert(tmp_path: Path) -> None:
     """Reject the original template author block and accept the restored owner."""
     root = Path(__file__).resolve().parents[1]
     original = (root / "pyproject.toml").read_text()
     metadata = tmp_path / "pyproject.toml"
-    monkeypatch.setitem(globals(), "__file__", str(tmp_path / "tests" / "test_repo_metadata.py"))
+    test_copy = tmp_path / "tests" / "test_repo_metadata.py"
+    test_copy.parent.mkdir()
+    test_copy.write_text(Path(__file__).read_text())
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/test_repo_metadata.py::test_project_authors_are_not_template_placeholder",
+        "-o",
+        "addopts=",
+        "-m",
+        "not slow",
+    ]
     broken = original.replace(
         '{name = "stranske", email = "noreply@users.noreply.github.com"}',
         '{name = "Your Name", email = "your.email@example.com"}',
     )
     assert broken != original
     metadata.write_text(broken)
-    with pytest.raises(AssertionError, match="Template placeholder in author name"):
-        test_project_authors_are_not_template_placeholder()
+    failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
+    assert failed.returncode == pytest.ExitCode.TESTS_FAILED, failed.stdout + failed.stderr
+    assert "Template placeholder in author name" in failed.stdout
     metadata.write_text(original)
-    test_project_authors_are_not_template_placeholder()
+    passed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
+    assert passed.returncode == pytest.ExitCode.OK, passed.stdout + passed.stderr
