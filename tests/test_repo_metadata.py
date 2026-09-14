@@ -67,8 +67,16 @@ def test_author_placeholder_guard_detects_break_and_revert(
         ("Your Name", "your.email@example.com", "name"),
         ("Your Name", "noreply@users.noreply.github.com", "name"),
         ("stranske", "your.email@example.com", "email"),
+        ("prefix Your Name suffix", "noreply@users.noreply.github.com", "name"),
+        ("stranske", "prefix your.email@example.com suffix", "email"),
     ],
-    ids=["full-placeholder", "placeholder-name", "placeholder-email"],
+    ids=[
+        "full-placeholder",
+        "placeholder-name",
+        "placeholder-email",
+        "embedded-placeholder-name",
+        "embedded-placeholder-email",
+    ],
 )
 def test_author_placeholder_block_detects_break_and_revert(
     tmp_path: Path, placement: str, name: str, email: str, invalid_field: str
