@@ -118,6 +118,13 @@ def test_author_placeholder_block_detects_break_and_revert(
     }[placement]
     broken = original.replace(owner, replacement)
     assert broken != original
+    metadata.write_text(original)
+    baseline = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
+    assert baseline.returncode == pytest.ExitCode.OK, baseline.stdout + baseline.stderr
+    assert (
+        "test_repo_metadata.py::test_project_authors_are_not_template_placeholder PASSED"
+        in baseline.stdout
+    ), baseline.stdout
     metadata.write_text(broken)
     try:
         failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
