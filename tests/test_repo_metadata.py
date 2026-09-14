@@ -3,6 +3,8 @@
 import tomllib
 from pathlib import Path
 
+import pytest
+
 
 def test_project_urls_reference_manager_mosaic_repo() -> None:
     root = Path(__file__).resolve().parents[1]
@@ -30,3 +32,25 @@ def test_project_authors_include_repository_owner() -> None:
     with (root / "pyproject.toml").open("rb") as source:
         authors = tomllib.load(source)["project"]["authors"]
     assert {"name": "stranske", "email": "noreply@users.noreply.github.com"} in authors
+
+
+@pytest.mark.parametrize("field", ["name", "email"])
+@pytest.mark.parametrize("placeholder", ["Your Name", "your.email@example.com"])
+def test_author_placeholder_guard_detects_break_and_revert(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, field: str, placeholder: str
+) -> None:
+    """Exercise the named guard against contaminated metadata, then restore it."""
+    root = Path(__file__).resolve().parents[1]
+    original = (root / "pyproject.toml").read_text()
+    metadata = tmp_path / "pyproject.toml"
+    monkeypatch.setitem(globals(), "__file__", str(tmp_path / "tests" / "test_repo_metadata.py"))
+    owner_value = {"name": "stranske", "email": "noreply@users.noreply.github.com"}[field]
+    broken = original.replace(
+        f'{field} = "{owner_value}"', f'{field} = "prefix {placeholder} suffix"'
+    )
+    assert broken != original
+    metadata.write_text(broken)
+    with pytest.raises(AssertionError, match=f"Template placeholder in author {field}"):
+        test_project_authors_are_not_template_placeholder()
+    metadata.write_text(original)
+    test_project_authors_are_not_template_placeholder()
