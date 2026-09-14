@@ -36,6 +36,16 @@ def test_project_authors_include_repository_owner() -> None:
     assert {"name": "stranske", "email": "noreply@users.noreply.github.com"} in authors
 
 
+def test_author_placeholder_guard_rejects_empty_authors(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Removing all authors must not bypass the placeholder guard."""
+    (tmp_path / "pyproject.toml").write_text("[project]\nauthors = []\n")
+    monkeypatch.setitem(globals(), "__file__", str(tmp_path / "tests" / "test_repo_metadata.py"))
+    with pytest.raises(AssertionError, match="Project metadata must declare an author"):
+        test_project_authors_are_not_template_placeholder()
+
+
 @pytest.mark.parametrize("field", ["name", "email"])
 @pytest.mark.parametrize("placeholder", ["Your Name", "your.email@example.com"])
 def test_author_placeholder_guard_detects_break_and_revert(
