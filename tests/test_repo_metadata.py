@@ -58,7 +58,10 @@ def test_author_placeholder_guard_detects_break_and_revert(
     test_project_authors_are_not_template_placeholder()
 
 
-def test_author_placeholder_block_detects_break_and_revert(tmp_path: Path) -> None:
+@pytest.mark.parametrize("retain_owner", [False, True], ids=["replace-owner", "second-author"])
+def test_author_placeholder_block_detects_break_and_revert(
+    tmp_path: Path, retain_owner: bool
+) -> None:
     """Reject the original template author block and accept the restored owner."""
     root = Path(__file__).resolve().parents[1]
     original = (root / "pyproject.toml").read_text()
@@ -76,10 +79,10 @@ def test_author_placeholder_block_detects_break_and_revert(tmp_path: Path) -> No
         "-m",
         "not slow",
     ]
-    broken = original.replace(
-        '{name = "stranske", email = "noreply@users.noreply.github.com"}',
-        '{name = "Your Name", email = "your.email@example.com"}',
-    )
+    owner = '{name = "stranske", email = "noreply@users.noreply.github.com"}'
+    placeholder = '{name = "Your Name", email = "your.email@example.com"}'
+    replacement = f"{owner},\n    {placeholder}" if retain_owner else placeholder
+    broken = original.replace(owner, replacement)
     assert broken != original
     metadata.write_text(broken)
     failed = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30)
