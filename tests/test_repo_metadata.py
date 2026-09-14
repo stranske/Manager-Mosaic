@@ -17,4 +17,9 @@ def test_project_authors_are_not_template_placeholder() -> None:
     root = Path(__file__).resolve().parents[1]
     with (root / "pyproject.toml").open("rb") as source:
         authors = tomllib.load(source)["project"]["authors"]
-    assert authors == [{"name": "stranske", "email": "noreply@users.noreply.github.com"}]
+    assert authors, "Project metadata must declare an author"
+    for author in authors:
+        for field in ("name", "email"):
+            value = author.get(field, "")
+            for placeholder in ("Your Name", "your.email@example.com"):
+                assert placeholder not in value, f"Template placeholder in author {field}: {value}"
