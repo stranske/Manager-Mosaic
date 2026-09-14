@@ -60,7 +60,7 @@ def test_author_placeholder_guard_detects_break_and_revert(
     test_project_authors_are_not_template_placeholder()
 
 
-@pytest.mark.parametrize("retain_owner", [False, True], ids=["replace-owner", "second-author"])
+@pytest.mark.parametrize("placement", ["replace-owner", "before-owner", "after-owner"])
 @pytest.mark.parametrize(
     ("name", "email", "invalid_field"),
     [
@@ -71,7 +71,7 @@ def test_author_placeholder_guard_detects_break_and_revert(
     ids=["full-placeholder", "placeholder-name", "placeholder-email"],
 )
 def test_author_placeholder_block_detects_break_and_revert(
-    tmp_path: Path, retain_owner: bool, name: str, email: str, invalid_field: str
+    tmp_path: Path, placement: str, name: str, email: str, invalid_field: str
 ) -> None:
     """Reject full or partially corrected template authors, then accept the owner."""
     root = Path(__file__).resolve().parents[1]
@@ -93,7 +93,11 @@ def test_author_placeholder_block_detects_break_and_revert(
     ]
     owner = '{name = "stranske", email = "noreply@users.noreply.github.com"}'
     placeholder = f'{{name = "{name}", email = "{email}"}}'
-    replacement = f"{owner},\n    {placeholder}" if retain_owner else placeholder
+    replacement = {
+        "replace-owner": placeholder,
+        "before-owner": f"{placeholder},\n    {owner}",
+        "after-owner": f"{owner},\n    {placeholder}",
+    }[placement]
     broken = original.replace(owner, replacement)
     assert broken != original
     metadata.write_text(broken)
