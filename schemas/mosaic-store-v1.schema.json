@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stranske/Manager-Mosaic/schemas/mosaic-store-v1.schema.json",
+  "title": "Manager Mosaic Store",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "funds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fund" }
+    },
+    "periods": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/period" }
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    },
+    "themes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/theme" }
+    },
+    "documents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/document" }
+    },
+    "gaps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "status_vocabularies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" },
+        "minItems": 1
+      }
+    }
+  },
+  "$defs": {
+    "fund": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "manager", "strategy", "archetype", "note"],
+      "properties": {
+        "name": { "type": "string" },
+        "manager": { "type": "string" },
+        "strategy": { "type": "string" },
+        "archetype": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sort", "label", "kind", "title", "author", "attendees", "verdict", "note"],
+      "properties": {
+        "id": { "type": "string" },
+        "sort": { "type": "integer" },
+        "label": { "type": "string" },
+        "kind": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "attendees": { "type": "string" },
+        "verdict": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "pub": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "as_of", "detail", "src"],
+      "properties": {
+        "state": { "type": "string", "enum": ["PENDING", "COMPLETED", "TERMINATED"] },
+        "as_of": { "type": "string" },
+        "detail": { "type": "string" },
+        "src": { "type": "string", "minLength": 1 }
+      }
+    },
+    "mention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period", "text", "size", "src", "inferred"],
+      "properties": {
+        "period": { "type": "string" },
+        "text": { "type": "string" },
+        "bps": { "type": ["number", "null"] },
+        "size": { "type": "string" },
+        "src": { "type": "string", "minLength": 1 },
+        "inferred": { "type": "boolean" }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "ticker",
+        "counterparty",
+        "kind",
+        "first",
+        "last",
+        "status",
+        "flag",
+        "thesis",
+        "pub",
+        "mentions"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ticker": { "type": "string" },
+        "counterparty": { "type": "string" },
+        "kind": { "type": "string" },
+        "first": { "type": "string" },
+        "last": { "type": "string" },
+        "status": { "type": "string" },
+        "peak": { "type": ["number", "null"] },
+        "flag": { "type": "string" },
+        "thesis": { "type": "string" },
+        "pub": { "$ref": "#/$defs/pub" },
+        "mentions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/mention" }
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "desc", "periods"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "desc": { "type": "string" },
+        "periods": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "date", "verdict", "note"],
+      "properties": {
+        "name": { "type": "string" },
+        "date": { "type": "string" },
+        "verdict": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sev", "title", "desc"],
+      "properties": {
+        "sev": { "type": "string" },
+        "title": { "type": "string" },
+        "desc": { "type": "string" }
+      }
+    }
+  }
+}
