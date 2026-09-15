@@ -287,9 +287,7 @@ def _check_finite(
     if value is None:
         return
     if isinstance(value, (int, float)) and not math.isfinite(float(value)):
-        violations.append(
-            ValidationViolation(record_id, f"{field} must be finite, got {value!r}")
-        )
+        violations.append(ValidationViolation(record_id, f"{field} must be finite, got {value!r}"))
 
 
 def _check_truncated_currency(
@@ -386,9 +384,7 @@ def validate(store: Store) -> list[ValidationViolation]:
         for index, mention_item in enumerate(entry_item.mentions):
             mention_id = f"{entry_item.id}:mention[{index}]"
             if not mention_item.src:
-                violations.append(
-                    ValidationViolation(mention_id, "mention must carry src")
-                )
+                violations.append(ValidationViolation(mention_id, "mention must carry src"))
             elif mention_item.src not in document_names:
                 violations.append(
                     ValidationViolation(
