@@ -63,8 +63,7 @@ def detect_numeric_discrepancies(
     """Flag fact groups that disagree beyond ``threshold_percent`` relative spread."""
     if not math.isfinite(threshold_percent) or threshold_percent < 0:
         raise ValueError(
-            "threshold_percent must be a non-negative finite number, "
-            f"got {threshold_percent!r}"
+            "threshold_percent must be a non-negative finite number, " f"got {threshold_percent!r}"
         )
 
     grouped: dict[tuple[str, str, str], list[FactRecord]] = defaultdict(list)
