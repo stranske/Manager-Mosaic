@@ -710,8 +710,13 @@ def _run_with_runtime_deps(
     command: tuple[str, ...],
     cwd: Path,
 ) -> subprocess.CompletedProcess[str]:
-    """Run the check, repairing PyYAML only after a YAML-triggered failure."""
+    """Run the check, repairing lightweight pytest imports when needed."""
     managed_runtime = _uses_pytest_runtime(command)
+    if managed_runtime:
+        try:
+            _ensure_pytest_runtime_deps()
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, ImportError, OSError) as exc:
+            raise RuntimeDependencyError(exc) from exc
     try:
         completed = _run(command, cwd)
     except OSError as exc:
