@@ -1,0 +1,20 @@
+{
+  "schema_version": "backplane-participants/v1",
+  "contract": "run-contract/v1",
+  "parent_issue": "stranske/Manager-Mosaic#3",
+  "participants": [
+    {
+      "repo": "stranske/Manager-Mosaic",
+      "parent_issue": "stranske/Manager-Mosaic#3",
+      "contract_version": "run-contract/v1",
+      "role": "consumer",
+      "status": "planned",
+      "ingests": [
+        "evidence-object/v1",
+        "artifact-manifest/v1",
+        "run-contract/v1",
+        "identity-map-conventions"
+      ]
+    }
+  ]
+}
