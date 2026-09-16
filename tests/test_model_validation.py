@@ -68,6 +68,16 @@ def test_mention_without_src_is_reported() -> None:
     assert any("mention must carry src" in v.message for v in violations)
 
 
+def test_mention_with_omitted_src_is_reported() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    del payload["entries"][0]["mentions"][0]["src"]
+    broken = Store.from_dict(payload)
+    violations = validate(broken)
+    assert any(
+        "mention[0]" in v.record_id and "mention must carry src" in v.message for v in violations
+    )
+
+
 def test_derive_gaps_leaves_status_unchanged() -> None:
     store = _load("minimal_store.json")
     before_status = store.entries[0].status
@@ -84,7 +94,26 @@ def test_validator_returns_all_four_defects() -> None:
     payload["entries"][0]["mentions"][0]["bps"] = math.inf
     broken = Store.from_dict(payload)
     violations = validate(broken)
-    assert len(violations) >= 4
+    messages = {(item.record_id, item.message) for item in violations}
+    assert any(
+        record_id == "alpha-fund" and "missing-period" in message
+        for record_id, message in messages
+    )
+    assert any(
+        "mention[0]" in record_id and "mention must carry src" in message
+        for record_id, message in messages
+    )
+    assert any("truncated currency" in message for _, message in messages)
+    assert any("bps must be finite" in message for _, message in messages)
+
+
+def test_oversized_integer_sort_does_not_abort_validation() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["periods"][0]["sort"] = 10**400
+    payload["entries"][0]["first"] = "missing-period"
+    broken = Store.from_dict(payload)
+    violations = validate(broken)
+    assert any(record_id == "alpha-fund" and "missing-period" in message for record_id, message in ((v.record_id, v.message) for v in violations))
 
 
 def _forbidden_infer_exit_on_gap(store: Store) -> str:

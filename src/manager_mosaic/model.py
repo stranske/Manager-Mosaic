@@ -11,7 +11,9 @@ import math
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 PUB_STATES = frozenset({"PENDING", "COMPLETED", "TERMINATED"})
@@ -108,6 +110,15 @@ class Store:
     documents: tuple[Document, ...]
     gaps: tuple[Gap, ...]
     status_vocabularies: Mapping[str, frozenset[str]]
+
+    def __post_init__(self) -> None:
+        immutable_vocabularies = MappingProxyType(
+            {
+                kind: frozenset(values)
+                for kind, values in self.status_vocabularies.items()
+            }
+        )
+        object.__setattr__(self, "status_vocabularies", immutable_vocabularies)
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> Store:
@@ -235,7 +246,7 @@ def _entry_from_dict(item: Mapping[str, Any]) -> Entry:
             text=m["text"],
             bps=m.get("bps"),
             size=m.get("size", ""),
-            src=m["src"],
+            src=m.get("src", ""),
             inferred=m["inferred"],
         )
         for m in item.get("mentions", [])
@@ -256,7 +267,7 @@ def _entry_from_dict(item: Mapping[str, Any]) -> Entry:
             state=pub_data["state"],
             as_of=pub_data.get("as_of", ""),
             detail=pub_data.get("detail", ""),
-            src=pub_data["src"],
+            src=pub_data.get("src", ""),
         ),
         mentions=mentions,
     )
@@ -286,7 +297,7 @@ def _check_finite(
 ) -> None:
     if value is None:
         return
-    if isinstance(value, (int, float)) and not math.isfinite(float(value)):
+    if isinstance(value, float) and not math.isfinite(value):
         violations.append(ValidationViolation(record_id, f"{field} must be finite, got {value!r}"))
 
 
@@ -362,7 +373,8 @@ def validate(store: Store) -> list[ValidationViolation]:
             violations.append(
                 ValidationViolation(
                     entry_item.id,
-                    f"status {entry_item.status!r} is not allowed for position entries",
+                    f"status {entry_item.status!r} is not allowed for "
+                    f"{entry_item.kind!r} entries",
                 )
             )
 
@@ -444,6 +456,6 @@ def _period_in_range(
 
 
 def load_schema(name: str = "mosaic-store-v1") -> dict[str, Any]:
-    schema_path = Path(__file__).resolve().parents[2] / "schemas" / f"{name}.schema.json"
-    payload: dict[str, Any] = json.loads(schema_path.read_text(encoding="utf-8"))
+    schema_file = resources.files("manager_mosaic").joinpath("schemas", f"{name}.schema.json")
+    payload: dict[str, Any] = json.loads(schema_file.read_text(encoding="utf-8"))
     return payload
