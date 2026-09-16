@@ -1,0 +1,71 @@
+{
+  "status_vocabularies": {
+    "position": ["ACTIVE", "WATCH", "EXITED"]
+  },
+  "documents": [
+    {
+      "name": "Q1-2025-Letter",
+      "date": "2025-03-31",
+      "verdict": "constructive",
+      "note": "Synthetic fixture"
+    }
+  ],
+  "periods": [
+    {
+      "id": "2025Q1",
+      "sort": 1,
+      "label": "Q1 2025",
+      "kind": "quarter",
+      "title": "First quarter review",
+      "author": "Analyst",
+      "attendees": "IC",
+      "verdict": "hold",
+      "note": ""
+    },
+    {
+      "id": "2025Q2",
+      "sort": 2,
+      "label": "Q2 2025",
+      "kind": "quarter",
+      "title": "Second quarter review",
+      "author": "Analyst",
+      "attendees": "IC",
+      "verdict": "hold",
+      "note": ""
+    }
+  ],
+  "entries": [
+    {
+      "id": "alpha-fund",
+      "name": "Alpha Fund",
+      "ticker": "ALF",
+      "counterparty": "Manager A",
+      "kind": "position",
+      "first": "2025Q1",
+      "last": "2025Q2",
+      "status": "ACTIVE",
+      "peak": 1.5,
+      "flag": "",
+      "thesis": "Carry and relative value",
+      "pub": {
+        "state": "PENDING",
+        "as_of": "2025-03-31",
+        "detail": "Under review",
+        "src": "Q1-2025-Letter"
+      },
+      "mentions": [
+        {
+          "period": "2025Q1",
+          "text": "Maintained exposure",
+          "bps": 25.0,
+          "size": "$36B",
+          "src": "Q1-2025-Letter",
+          "inferred": false
+        }
+      ]
+    }
+  ],
+  "funds": [],
+  "themes": [],
+  "gaps": []
+}
