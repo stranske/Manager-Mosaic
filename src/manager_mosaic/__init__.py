@@ -1,5 +1,6 @@
 """Manager mosaic: evidence-linked facts, discrepancy detection, and thesis monitoring."""
 
+from manager_mosaic.evidence import validate_evidence_object
 from manager_mosaic.model import (
     Document,
     Entry,
@@ -47,6 +48,7 @@ __all__ = [
     "pub",
     "theme",
     "validate",
+    "validate_evidence_object",
     "greet",
     "add",
 ]
