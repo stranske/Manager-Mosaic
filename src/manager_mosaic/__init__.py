@@ -1,33 +1,62 @@
-"""Manager mosaic: evidence-linked facts, discrepancy detection, and investment-thesis monitoring across manager communication sources
+"""Manager mosaic: evidence-linked facts, discrepancy detection, and thesis monitoring."""
 
-The two helpers below are the Template's scaffold and are exercised by tests/test_main.py.
-They stay until real modules replace them, so the package always has a tested public surface.
-"""
+from manager_mosaic.model import (
+    Document,
+    Entry,
+    Fund,
+    Gap,
+    Mention,
+    Period,
+    Pub,
+    Store,
+    Theme,
+    ValidationViolation,
+    derive_gaps,
+    document,
+    entry,
+    fund,
+    gap,
+    load_schema,
+    mention,
+    period,
+    pub,
+    theme,
+    validate,
+)
 
 __version__ = "0.1.0"
-__all__ = ["greet", "add"]
+__all__ = [
+    "Document",
+    "Entry",
+    "Fund",
+    "Gap",
+    "Mention",
+    "Period",
+    "Pub",
+    "Store",
+    "Theme",
+    "ValidationViolation",
+    "derive_gaps",
+    "document",
+    "entry",
+    "fund",
+    "gap",
+    "load_schema",
+    "mention",
+    "period",
+    "pub",
+    "theme",
+    "validate",
+    "greet",
+    "add",
+]
 
 
 def greet(name: str) -> str:
-    """Return a greeting message.
-
-    Args:
-        name: The name to greet.
-
-    Returns:
-        A greeting string.
-    """
+    """Return a greeting message."""
     return f"Hello, {name}!"
 
 
 def add(a: int, b: int) -> int:
-    """Add two numbers.
-
-    Args:
-        a: First number.
-        b: Second number.
-
-    Returns:
-        The sum of a and b.
-    """
+    """Add two numbers."""
     return a + b

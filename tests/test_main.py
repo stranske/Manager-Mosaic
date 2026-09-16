@@ -31,3 +31,11 @@ def test_add_negative() -> None:
     """Add should handle negative numbers."""
     assert add(-5, -3) == -8
     assert add(-10, 5) == -5
+
+
+def test_wildcard_import_exports_greet_and_add() -> None:
+    """Wildcard imports must preserve legacy greet/add exports."""
+    namespace: dict[str, object] = {}
+    exec("from manager_mosaic import *", namespace)  # noqa: S102
+    assert "greet" in namespace
+    assert "add" in namespace
