@@ -96,8 +96,7 @@ def test_validator_returns_all_four_defects() -> None:
     violations = validate(broken)
     messages = {(item.record_id, item.message) for item in violations}
     assert any(
-        record_id == "alpha-fund" and "missing-period" in message
-        for record_id, message in messages
+        record_id == "alpha-fund" and "missing-period" in message for record_id, message in messages
     )
     assert any(
         "mention[0]" in record_id and "mention must carry src" in message
@@ -113,7 +112,10 @@ def test_oversized_integer_sort_does_not_abort_validation() -> None:
     payload["entries"][0]["first"] = "missing-period"
     broken = Store.from_dict(payload)
     violations = validate(broken)
-    assert any(record_id == "alpha-fund" and "missing-period" in message for record_id, message in ((v.record_id, v.message) for v in violations))
+    assert any(
+        record_id == "alpha-fund" and "missing-period" in message
+        for record_id, message in ((v.record_id, v.message) for v in violations)
+    )
 
 
 def _forbidden_infer_exit_on_gap(store: Store) -> str:

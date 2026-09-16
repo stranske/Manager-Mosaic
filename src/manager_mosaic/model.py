@@ -113,10 +113,7 @@ class Store:
 
     def __post_init__(self) -> None:
         immutable_vocabularies = MappingProxyType(
-            {
-                kind: frozenset(values)
-                for kind, values in self.status_vocabularies.items()
-            }
+            {kind: frozenset(values) for kind, values in self.status_vocabularies.items()}
         )
         object.__setattr__(self, "status_vocabularies", immutable_vocabularies)
 
