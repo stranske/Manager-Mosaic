@@ -715,7 +715,12 @@ def _run_with_runtime_deps(
     if managed_runtime:
         try:
             _ensure_pytest_runtime_deps()
-        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, ImportError, OSError) as exc:
+        except (
+            subprocess.TimeoutExpired,
+            subprocess.CalledProcessError,
+            ImportError,
+            OSError,
+        ) as exc:
             raise RuntimeDependencyError(exc) from exc
     try:
         completed = _run(command, cwd)
