@@ -26,4 +26,5 @@ def test_manager_mosaic_consumer_entry_present() -> None:
     assert entry.get("role") == "consumer"
     assert entry.get("status") == "planned"
     assert entry.get("parent_issue") == "stranske/Manager-Mosaic#3"
+    assert entry.get("contract_version") == "run-contract/v1"
     assert entry.get("ingests") == list(EXPECTED_INGESTS)
