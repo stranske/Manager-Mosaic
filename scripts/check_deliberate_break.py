@@ -36,7 +36,12 @@ DEFAULT_TIMEOUT_SECONDS = 120
 # Compatible installed versions may exceed this Workflows-owned bootstrap floor;
 # automatic repair remains reproducibly pinned by PYTEST_RUNTIME_DEPENDENCIES.
 PYYAML_VERSION = "6.0.3"
-PYTEST_RUNTIME_DEPENDENCIES = (f"pyyaml=={PYYAML_VERSION}",)
+JSONSCHEMA_VERSION = "4.22.0"
+PYTEST_RUNTIME_DEPENDENCIES = (
+    f"pyyaml=={PYYAML_VERSION}",
+    f"jsonschema=={JSONSCHEMA_VERSION}",
+)
+PYTEST_RUNTIME_IMPORTS = ("yaml", "jsonschema")
 PYYAML_PROBE_SENTINEL = "__gate_pyyaml_import_ok__"
 PYYAML_PROBE_CODE = f"import yaml; print({PYYAML_PROBE_SENTINEL!r})"
 
@@ -258,59 +263,67 @@ def _supported_pyyaml_version(installed_version: str | None) -> bool:
     return installed_match.group("pre") is None and installed_match.group("dev") is None
 
 
-def _ensure_pytest_runtime_deps() -> None:
-    """Install lightweight dependencies that Gate test-quality may not preinstall.
-
-    Gate's test-quality job installs only ``pytest``. Deliberate-break may still
-    collect tests that import PyYAML (for example via ``sync_manifest_compiler``).
-    Installing here avoids editing ``pr-00-gate.yml``, which forces an
-    Actions ``action_required`` approval wait on workflow-touching PRs.
-    """
+def _missing_pytest_runtime_imports() -> list[str]:
+    missing: list[str] = []
     try:
         installed_version = metadata.version("PyYAML")
     except metadata.PackageNotFoundError:
         installed_version = None
-    import_error: Exception | None = None
-    if _supported_pyyaml_version(installed_version):
+    if not _supported_pyyaml_version(installed_version):
+        missing.append("yaml")
+    else:
         try:
             import_module("yaml")
-        except Exception as exc:
-            # Any ordinary import-time failure means the installed distribution
-            # is unusable. Reinstall the locked wheel before collecting tests.
-            import_error = exc
-        else:
-            return
-    if not _supported_pyyaml_version(installed_version) or import_error is not None:
-        # Local and custom environments are user-owned; dependency repair may
-        # mutate the active interpreter only in GitHub Actions.
-        if os.environ.get("GITHUB_ACTIONS") != "true":
-            error = ImportError(
-                f"PyYAML >= {PYYAML_VERSION} is required; install "
-                f"'PyYAML>={PYYAML_VERSION}' in the active environment"
-            )
-            raise error from import_error
-        command = [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-        ]
-        if import_error is not None:
-            command.append("--force-reinstall")
-        command.extend(PYTEST_RUNTIME_DEPENDENCIES)
-        subprocess.run(
-            command,
-            check=True,
-            text=True,
-            capture_output=True,
-            timeout=DEFAULT_TIMEOUT_SECONDS,
+        except Exception:
+            missing.append("yaml")
+    for module_name in PYTEST_RUNTIME_IMPORTS:
+        if module_name == "yaml":
+            continue
+        try:
+            import_module(module_name)
+        except Exception:
+            missing.append(module_name)
+    return missing
+
+
+def _ensure_pytest_runtime_deps() -> None:
+    """Install lightweight dependencies that Gate test-quality may not preinstall.
+
+    Gate's test-quality job installs only ``pytest``. Deliberate-break may still
+    collect tests that import PyYAML (for example via ``sync_manifest_compiler``)
+    or other lightweight runtime deps declared in ``PYTEST_RUNTIME_DEPENDENCIES``.
+    Installing here avoids editing ``pr-00-gate.yml``, which forces an
+    Actions ``action_required`` approval wait on workflow-touching PRs.
+    """
+    missing = _missing_pytest_runtime_imports()
+    if not missing:
+        return
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        packages = ", ".join(PYTEST_RUNTIME_DEPENDENCIES)
+        raise ImportError(
+            f"Deliberate-break requires {packages}; missing imports: {', '.join(missing)}"
         )
-        try:
-            import_module("yaml")
-        except Exception as retry_error:
-            error = ImportError(f"PyYAML remained unimportable after reinstall: {retry_error}")
-            raise error from (import_error or retry_error)
+    command = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--upgrade",
+        *PYTEST_RUNTIME_DEPENDENCIES,
+    ]
+    subprocess.run(
+        command,
+        check=True,
+        text=True,
+        capture_output=True,
+        timeout=DEFAULT_TIMEOUT_SECONDS,
+    )
+    still_missing = _missing_pytest_runtime_imports()
+    if still_missing:
+        raise ImportError(
+            "Deliberate-break runtime deps remained unavailable after install: "
+            + ", ".join(still_missing)
+        )
 
 
 def _pyyaml_runtime_needs_repair() -> bool:
