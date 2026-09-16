@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from jsonschema import Draft202012Validator
 
@@ -15,7 +15,10 @@ _EVIDENCE_SCHEMA_PATH = (
 
 def load_evidence_schema() -> dict[str, Any]:
     """Load the checked-in evidence-object/v1 JSON Schema."""
-    return json.loads(_EVIDENCE_SCHEMA_PATH.read_text(encoding="utf-8"))
+    return cast(
+        dict[str, Any],
+        json.loads(_EVIDENCE_SCHEMA_PATH.read_text(encoding="utf-8")),
+    )
 
 
 def validate_evidence_object(payload: dict[str, Any]) -> list[str]:
