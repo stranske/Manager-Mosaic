@@ -234,7 +234,7 @@ def parse_deliberate_break_spec(markdown: str) -> DeliberateBreakSpec | None:
 
 
 def _pytest_command(test_id: str) -> tuple[str, ...]:
-    return (sys.executable, "-m", "pytest", test_id, "-q")
+    return (sys.executable, "-m", "pytest", test_id, "-q", "-o", "addopts=")
 
 
 def _supported_pyyaml_version(installed_version: str | None) -> bool:
