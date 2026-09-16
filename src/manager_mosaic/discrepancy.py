@@ -51,7 +51,8 @@ def _relative_spread_percent(values: Sequence[float]) -> float:
             baseline = min(abs(left), abs(right))
             if baseline == 0.0:
                 return math.inf
-            spread = max(spread, abs(left - right) / baseline * 100.0)
+            normalized_difference = abs(left / baseline - right / baseline)
+            spread = max(spread, normalized_difference * 100.0)
     return spread
 
 

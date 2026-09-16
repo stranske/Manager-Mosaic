@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import sys
 
 import pytest
 
@@ -60,6 +61,21 @@ def test_zero_baseline_flags_unbounded_spread() -> None:
 def test_negative_threshold_rejected() -> None:
     with pytest.raises(ValueError, match="threshold_percent"):
         detect_numeric_discrepancies(_irr_pair(), threshold_percent=-1.0)
+
+
+def test_non_finite_threshold_rejected() -> None:
+    with pytest.raises(ValueError, match="threshold_percent"):
+        detect_numeric_discrepancies(_irr_pair(), threshold_percent=math.nan)
+
+
+def test_opposite_max_finite_values_produce_documented_spread() -> None:
+    max_value = sys.float_info.max
+    facts = [
+        FactRecord("metric", "entity", "2024", max_value, "ev-a"),
+        FactRecord("metric", "entity", "2024", -max_value, "ev-b"),
+    ]
+
+    assert detect_numeric_discrepancies(facts, threshold_percent=200.0) == []
 
 
 def test_non_finite_fact_value_rejected() -> None:
