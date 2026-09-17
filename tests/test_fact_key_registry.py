@@ -5,6 +5,9 @@ import re
 from importlib import resources
 from pathlib import Path
 
+import pytest
+
+from manager_mosaic import fact_keys
 from manager_mosaic.fact_keys import load_fact_key_registry
 
 _FIXTURE_FACT_KEY_PATTERN = re.compile(r'fact_key\s*=\s*"([^"]+)"')
@@ -37,11 +40,16 @@ def test_fact_key_registry_covers_synthetic_fixture_keys() -> None:
     assert not missing, f"fixture fact_keys missing from registry: {missing}"
 
 
-def test_fact_key_registry_is_readable_through_package_resources() -> None:
+def test_fact_key_registry_is_readable_through_package_resources(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """The registry must resolve from the installed package, not only a source path."""
     registry_file = resources.files("manager_mosaic").joinpath("fact_key_registry.json")
     assert registry_file.is_file()
     packaged_keys = frozenset(
         str(key) for key in json.loads(registry_file.read_text(encoding="utf-8"))["keys"]
     )
+    # Hide the source-checkout copy so the packaged-resource branch is the one taken.
+    monkeypatch.setattr(fact_keys, "_REPO_REGISTRY_PATH", tmp_path / "absent" / "registry.json")
+    assert not fact_keys._REPO_REGISTRY_PATH.is_file()
     assert load_fact_key_registry() == packaged_keys
