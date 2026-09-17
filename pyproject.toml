@@ -42,7 +42,7 @@ Repository = "https://github.com/stranske/Manager-Mosaic"
 where = ["src"]
 
 [tool.setuptools.package-data]
-manager_mosaic = ["schemas/*.json"]
+manager_mosaic = ["schemas/*.json", "fact_key_registry.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
