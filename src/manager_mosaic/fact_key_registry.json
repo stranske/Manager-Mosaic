@@ -1,0 +1,25 @@
+{
+  "schema_version": "fact-key-registry/v1",
+  "keys": [
+    "capacity.hard_cap_usd",
+    "capacity.remaining_capacity_pct",
+    "fees.hurdle_rate",
+    "fees.management_fee_rate",
+    "fees.performance_fee_rate",
+    "fund.gross_irr",
+    "fund.net_irr",
+    "legal.redemption_notice_days",
+    "legal.side_letter_terms",
+    "legal.withdrawal_notice_days",
+    "liquidity.gate_provisions",
+    "liquidity.lockup_period_months",
+    "liquidity.redemption_frequency",
+    "liquidity.side_pocket_pct",
+    "performance.dpi",
+    "performance.irr",
+    "performance.moic",
+    "performance.tvpi",
+    "team.key_person_turnover",
+    "team.portfolio_manager_tenure_years"
+  ]
+}
