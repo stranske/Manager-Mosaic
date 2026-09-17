@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import math
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
 from manager_mosaic.discrepancy import FactRecord
+
+_QUARTER_YEAR = re.compile(r"^(\d{4})Q([1-4])$", re.IGNORECASE)
+_YEAR_QUARTER = re.compile(r"^Q([1-4])\s+(\d{4})$", re.IGNORECASE)
 
 ThesisVerdict = Literal[
     "supported",
@@ -17,6 +22,18 @@ ThesisVerdict = Literal[
 ExpectedPattern = Literal["min", "max"]
 
 
+def _period_chronology_key(period: str) -> tuple[int, int, str]:
+    """Return a sortable key for common quarter period labels."""
+    normalized = period.strip()
+    match = _QUARTER_YEAR.match(normalized)
+    if match:
+        return (int(match.group(1)), int(match.group(2)), normalized)
+    match = _YEAR_QUARTER.match(normalized)
+    if match:
+        return (int(match.group(2)), int(match.group(1)), normalized)
+    return (0, 0, normalized)
+
+
 @dataclass(frozen=True)
 class ThesisClaim:
     claim_id: str
@@ -25,6 +42,10 @@ class ThesisClaim:
     fact_key: str
     expected_pattern: ExpectedPattern
     threshold: float
+
+    def __post_init__(self) -> None:
+        if not math.isfinite(self.threshold):
+            raise ValueError(f"threshold must be finite, got {self.threshold!r}")
 
 
 @dataclass(frozen=True)
@@ -48,7 +69,10 @@ def evaluate_claim(claim: ThesisClaim, facts: Sequence[FactRecord]) -> ThesisChe
             evidence_ids=(),
         )
 
-    latest = max(matching, key=lambda fact: (fact.period, fact.evidence_id))
+    latest = max(
+        matching,
+        key=lambda fact: (_period_chronology_key(fact.period), fact.evidence_id),
+    )
     if claim.expected_pattern == "min":
         verdict: ThesisVerdict = "contradicted" if latest.value < claim.threshold else "supported"
     else:
