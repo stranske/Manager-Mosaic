@@ -50,9 +50,7 @@ def evaluate_claim(claim: ThesisClaim, facts: Sequence[FactRecord]) -> ThesisChe
 
     latest = max(matching, key=lambda fact: (fact.period, fact.evidence_id))
     if claim.expected_pattern == "min":
-        verdict: ThesisVerdict = (
-            "contradicted" if latest.value < claim.threshold else "supported"
-        )
+        verdict: ThesisVerdict = "contradicted" if latest.value < claim.threshold else "supported"
     else:
         verdict = "contradicted" if latest.value > claim.threshold else "supported"
 
