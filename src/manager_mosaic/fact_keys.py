@@ -5,9 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-_DEFAULT_REGISTRY_PATH = (
-    Path(__file__).resolve().parents[2] / "config" / "fact_key_registry.json"
-)
+_DEFAULT_REGISTRY_PATH = Path(__file__).resolve().parents[2] / "config" / "fact_key_registry.json"
 
 
 def load_fact_key_registry(path: Path | None = None) -> frozenset[str]:
