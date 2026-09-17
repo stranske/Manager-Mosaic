@@ -75,8 +75,10 @@ def evaluate_claim(claim: ThesisClaim, facts: Sequence[FactRecord]) -> ThesisChe
     )
     if claim.expected_pattern == "min":
         verdict: ThesisVerdict = "contradicted" if latest.value < claim.threshold else "supported"
-    else:
+    elif claim.expected_pattern == "max":
         verdict = "contradicted" if latest.value > claim.threshold else "supported"
+    else:
+        raise ValueError(f"unsupported expected_pattern: {claim.expected_pattern!r}")
 
     return ThesisCheck(
         claim_id=claim.claim_id,
