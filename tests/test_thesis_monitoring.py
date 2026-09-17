@@ -123,6 +123,24 @@ def test_evaluate_claim_returns_insufficient_evidence_when_no_matching_facts() -
     assert check.evidence_ids == ()
 
 
+def test_evaluate_claim_returns_insufficient_evidence_for_different_fact_key() -> None:
+    claim = _irr_min_claim()
+    facts = [
+        FactRecord(
+            fact_key="performance.moic",
+            entity_ref="fund-alpha",
+            period="2024Q4",
+            value=12.0,
+            evidence_id="ev-moic",
+        )
+    ]
+
+    check = evaluate_claim(claim, facts)
+
+    assert check.verdict == "insufficient_evidence"
+    assert check.evidence_ids == ()
+
+
 def test_evaluate_claim_selects_latest_matching_fact_by_period() -> None:
     claim = _irr_min_claim()
     facts = [
@@ -148,6 +166,36 @@ def test_evaluate_claim_selects_latest_matching_fact_by_period() -> None:
     assert check.evidence_ids == ("ev-new",)
 
 
-def test_thesis_claim_rejects_non_finite_threshold() -> None:
+def test_evaluate_claim_selects_chronologically_latest_across_period_formats() -> None:
+    claim = _irr_min_claim()
+    facts = [
+        FactRecord(
+            fact_key="performance.irr",
+            entity_ref="fund-alpha",
+            period="Q4 2024",
+            value=8.0,
+            evidence_id="ev-q4-2024",
+        ),
+        FactRecord(
+            fact_key="performance.irr",
+            entity_ref="fund-alpha",
+            period="2025Q1",
+            value=12.0,
+            evidence_id="ev-2025q1",
+        ),
+    ]
+
+    check = evaluate_claim(claim, facts)
+
+    assert check.verdict == "supported"
+    assert check.evidence_ids == ("ev-2025q1",)
+
+
+@pytest.mark.parametrize(
+    "threshold",
+    [math.nan, math.inf, -math.inf],
+    ids=["nan", "inf", "neg_inf"],
+)
+def test_thesis_claim_rejects_non_finite_threshold(threshold: float) -> None:
     with pytest.raises(ValueError, match="threshold must be finite"):
-        _irr_min_claim(threshold=math.nan)
+        _irr_min_claim(threshold=threshold)
