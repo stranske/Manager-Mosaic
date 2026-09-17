@@ -6,9 +6,7 @@ import json
 from importlib import resources
 from pathlib import Path
 
-_REPO_REGISTRY_PATH = (
-    Path(__file__).resolve().parents[2] / "config" / "fact_key_registry.json"
-)
+_REPO_REGISTRY_PATH = Path(__file__).resolve().parents[2] / "config" / "fact_key_registry.json"
 _PACKAGED_REGISTRY_NAME = "fact_key_registry.json"
 
 
