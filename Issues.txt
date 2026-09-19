@@ -34,9 +34,8 @@ Non-Goals
 - Documentation site (separate issue)
 
 Tasks
-- [ ] Create src/my_project/__init__.py with version
-- [ ] Create src/my_project/main.py with sample function
-- [ ] Create tests/test_main.py with basic tests
+- [ ] Maintain src/manager_mosaic/__init__.py with version
+- [ ] Maintain tests/test_package_identity.py with package import and version checks
 - [ ] Configure pyproject.toml with all tools
 - [ ] Verify ruff check passes
 - [ ] Verify mypy check passes
@@ -51,6 +50,6 @@ Acceptance criteria
 
 Implementation notes
 - Use modern pyproject.toml format (no setup.py)
-- Target Python 3.11+ 
+- Target Python 3.12+
 - Use src layout for package
 - Follow strict mypy configuration
