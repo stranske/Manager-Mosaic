@@ -1,0 +1,7 @@
+{
+  "schema_version": "evidence-object/v1",
+  "evidence_id": "synthetic-evidence-001",
+  "fact_ref": "strategy.asset_class",
+  "source_id": "synthetic-source-001",
+  "method": "manual"
+}
