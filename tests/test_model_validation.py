@@ -120,6 +120,19 @@ def test_validator_returns_all_four_defects() -> None:
     assert any("bps must be finite" in message for _, message in messages)
 
 
+def test_none_period_sort_does_not_abort_validation() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["periods"][0]["sort"] = None
+    payload["entries"][0]["first"] = "missing-period"
+    broken = Store.from_dict(payload)
+    violations = validate(broken)
+    messages = {(v.record_id, v.message) for v in violations}
+    assert any("sort must be a finite number" in message for _, message in messages)
+    assert any(
+        record_id == "alpha-fund" and "missing-period" in message for record_id, message in messages
+    )
+
+
 def test_oversized_integer_sort_does_not_abort_validation() -> None:
     payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
     payload["periods"][0]["sort"] = 10**400
