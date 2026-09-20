@@ -10,8 +10,8 @@ from typing import Literal
 
 from manager_mosaic.discrepancy import FactRecord
 
-_QUARTER_YEAR = re.compile(r"^(\d{4})Q([1-4])$", re.IGNORECASE)
-_YEAR_QUARTER = re.compile(r"^Q([1-4])\s+(\d{4})$", re.IGNORECASE)
+_YEAR_FIRST_QUARTER = re.compile(r"^(?P<year>\d{4})(?:Q|-Q)(?P<quarter>[1-4])$", re.IGNORECASE)
+_QUARTER_FIRST_YEAR = re.compile(r"^Q(?P<quarter>[1-4])\s+(?P<year>\d{4})$", re.IGNORECASE)
 
 ThesisVerdict = Literal[
     "supported",
@@ -23,15 +23,13 @@ ExpectedPattern = Literal["min", "max"]
 
 
 def _period_chronology_key(period: str) -> tuple[int, int, str]:
-    """Return a sortable, normalized key for common quarter period labels."""
+    """Normalize ``YYYYQn``, ``YYYY-Qn``, and ``Qn YYYY`` for sorting."""
     normalized = period.strip()
-    match = _QUARTER_YEAR.match(normalized)
-    if match:
-        return (int(match.group(1)), int(match.group(2)), "")
-    match = _YEAR_QUARTER.match(normalized)
-    if match:
-        return (int(match.group(2)), int(match.group(1)), "")
-    return (0, 0, normalized)
+    for pattern in (_YEAR_FIRST_QUARTER, _QUARTER_FIRST_YEAR):
+        match = pattern.match(normalized)
+        if match:
+            return (int(match.group("year")), int(match.group("quarter")), "")
+    raise ValueError(f"unsupported period label: {period!r}")
 
 
 @dataclass(frozen=True)
