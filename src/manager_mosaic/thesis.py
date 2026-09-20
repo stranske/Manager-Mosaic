@@ -23,14 +23,14 @@ ExpectedPattern = Literal["min", "max"]
 
 
 def _period_chronology_key(period: str) -> tuple[int, int, str]:
-    """Return a sortable key for common quarter period labels."""
+    """Return a sortable, normalized key for common quarter period labels."""
     normalized = period.strip()
     match = _QUARTER_YEAR.match(normalized)
     if match:
-        return (int(match.group(1)), int(match.group(2)), normalized)
+        return (int(match.group(1)), int(match.group(2)), "")
     match = _YEAR_QUARTER.match(normalized)
     if match:
-        return (int(match.group(2)), int(match.group(1)), normalized)
+        return (int(match.group(2)), int(match.group(1)), "")
     return (0, 0, normalized)
 
 
@@ -69,19 +69,27 @@ def evaluate_claim(claim: ThesisClaim, facts: Sequence[FactRecord]) -> ThesisChe
             evidence_ids=(),
         )
 
-    latest = max(
-        matching,
-        key=lambda fact: (_period_chronology_key(fact.period), fact.evidence_id),
-    )
+    latest_period = max(_period_chronology_key(fact.period) for fact in matching)
+    latest_facts = [
+        fact for fact in matching if _period_chronology_key(fact.period) == latest_period
+    ]
     if claim.expected_pattern == "min":
-        verdict: ThesisVerdict = "contradicted" if latest.value < claim.threshold else "supported"
+        contradicted = [fact.value < claim.threshold for fact in latest_facts]
     elif claim.expected_pattern == "max":
-        verdict = "contradicted" if latest.value > claim.threshold else "supported"
+        contradicted = [fact.value > claim.threshold for fact in latest_facts]
     else:
         raise ValueError(f"unsupported expected_pattern: {claim.expected_pattern!r}")
+
+    verdict: ThesisVerdict
+    if any(contradicted) and not all(contradicted):
+        verdict = "at_risk"
+    elif any(contradicted):
+        verdict = "contradicted"
+    else:
+        verdict = "supported"
 
     return ThesisCheck(
         claim_id=claim.claim_id,
         verdict=verdict,
-        evidence_ids=(latest.evidence_id,),
+        evidence_ids=tuple(sorted({fact.evidence_id for fact in latest_facts})),
     )
