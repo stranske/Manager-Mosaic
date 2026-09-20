@@ -52,6 +52,20 @@ def test_mistyped_entry_period_reference_is_reported() -> None:
     assert any(v.record_id == "alpha-fund" and "2025Q1_typo" in v.message for v in violations)
 
 
+def test_inverted_entry_period_range_is_reported() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["entries"][0]["first"] = "2025Q2"
+    payload["entries"][0]["last"] = "2025Q1"
+    broken = Store.from_dict(payload)
+
+    violations = validate(broken)
+
+    assert [(violation.record_id, violation.message) for violation in violations] == [
+        ("alpha-fund", "first period '2025Q2' is after last period '2025Q1'")
+    ]
+    assert derive_gaps(broken) == ()
+
+
 def test_truncated_currency_suffix_is_reported() -> None:
     payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
     payload["entries"][0]["mentions"][0]["size"] = "$B"
@@ -104,6 +118,19 @@ def test_validator_returns_all_four_defects() -> None:
     )
     assert any("truncated currency" in message for _, message in messages)
     assert any("bps must be finite" in message for _, message in messages)
+
+
+def test_none_period_sort_does_not_abort_validation() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["periods"][0]["sort"] = None
+    payload["entries"][0]["first"] = "missing-period"
+    broken = Store.from_dict(payload)
+    violations = validate(broken)
+    messages = {(v.record_id, v.message) for v in violations}
+    assert any("sort must be a finite number" in message for _, message in messages)
+    assert any(
+        record_id == "alpha-fund" and "missing-period" in message for record_id, message in messages
+    )
 
 
 def test_oversized_integer_sort_does_not_abort_validation() -> None:

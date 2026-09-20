@@ -298,6 +298,21 @@ def _check_finite(
         violations.append(ValidationViolation(record_id, f"{field} must be finite, got {value!r}"))
 
 
+def _check_period_sort(
+    violations: list[ValidationViolation],
+    record_id: str,
+    value: Any,
+) -> bool:
+    """Return True when sort is safe to compare."""
+    if value is None:
+        violations.append(ValidationViolation(record_id, "sort must be a finite number"))
+        return False
+    if isinstance(value, float) and not math.isfinite(value):
+        violations.append(ValidationViolation(record_id, f"sort must be finite, got {value!r}"))
+        return False
+    return True
+
+
 def _check_truncated_currency(
     violations: list[ValidationViolation],
     record_id: str,
@@ -318,12 +333,16 @@ def validate(store: Store) -> list[ValidationViolation]:
     violations: list[ValidationViolation] = []
     seen_ids: dict[str, str] = {}
 
-    period_ids = {item.id for item in store.periods}
+    periods_by_id = {item.id: item for item in store.periods}
+    period_ids = set(periods_by_id)
     document_names = {item.name for item in store.documents}
 
+    valid_period_sorts: dict[str, bool] = {}
     for period_item in store.periods:
         _append_duplicate(violations, seen_ids, period_item.id, "periods")
-        _check_finite(violations, period_item.id, "sort", period_item.sort)
+        valid_period_sorts[period_item.id] = _check_period_sort(
+            violations, period_item.id, period_item.sort
+        )
 
     for theme_item in store.themes:
         _append_duplicate(violations, seen_ids, theme_item.id, "themes")
@@ -360,6 +379,21 @@ def validate(store: Store) -> list[ValidationViolation]:
                 ValidationViolation(
                     entry_item.id,
                     f"period {entry_item.last!r} referenced but not defined",
+                )
+            )
+        first_period = periods_by_id.get(entry_item.first)
+        last_period = periods_by_id.get(entry_item.last)
+        if (
+            first_period is not None
+            and last_period is not None
+            and valid_period_sorts.get(entry_item.first, False)
+            and valid_period_sorts.get(entry_item.last, False)
+            and first_period.sort > last_period.sort
+        ):
+            violations.append(
+                ValidationViolation(
+                    entry_item.id,
+                    f"first period {entry_item.first!r} is after last period {entry_item.last!r}",
                 )
             )
         _check_finite(violations, entry_item.id, "peak", entry_item.peak)
@@ -448,6 +482,9 @@ def _period_in_range(
     first = period_ids.get(entry_item.first)
     last = period_ids.get(entry_item.last)
     if first is None or last is None:
+        return False
+    bounds = (first.sort, last.sort, period_item.sort)
+    if any(value is None for value in bounds):
         return False
     return first.sort <= period_item.sort <= last.sort
 
