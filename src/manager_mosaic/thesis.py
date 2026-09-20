@@ -10,7 +10,7 @@ from typing import Literal
 
 from manager_mosaic.discrepancy import FactRecord
 
-_QUARTER_YEAR = re.compile(r"^(\d{4})Q([1-4])$", re.IGNORECASE)
+_QUARTER_YEAR = re.compile(r"^(\d{4})-?Q([1-4])$", re.IGNORECASE)
 _YEAR_QUARTER = re.compile(r"^Q([1-4])\s+(\d{4})$", re.IGNORECASE)
 
 ThesisVerdict = Literal[
@@ -31,7 +31,7 @@ def _period_chronology_key(period: str) -> tuple[int, int, str]:
     match = _YEAR_QUARTER.match(normalized)
     if match:
         return (int(match.group(2)), int(match.group(1)), "")
-    return (0, 0, normalized)
+    raise ValueError(f"unsupported period label: {period!r}")
 
 
 @dataclass(frozen=True)

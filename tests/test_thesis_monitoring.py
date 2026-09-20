@@ -191,6 +191,30 @@ def test_evaluate_claim_selects_chronologically_latest_across_period_formats() -
     assert check.evidence_ids == ("ev-2025q1",)
 
 
+def test_evaluate_claim_selects_hyphenated_later_quarter() -> None:
+    claim = _irr_min_claim()
+    facts = [
+        FactRecord("performance.irr", "fund-alpha", "2024Q4", 12.0, "ev-old"),
+        FactRecord("performance.irr", "fund-alpha", "2025-Q1", 8.0, "ev-new"),
+    ]
+
+    check = evaluate_claim(claim, facts)
+
+    assert check.verdict == "contradicted"
+    assert check.evidence_ids == ("ev-new",)
+
+
+def test_evaluate_claim_rejects_unorderable_period() -> None:
+    claim = _irr_min_claim()
+    facts = [
+        FactRecord("performance.irr", "fund-alpha", "2024Q4", 12.0, "ev-old"),
+        FactRecord("performance.irr", "fund-alpha", "FY2025", 8.0, "ev-new"),
+    ]
+
+    with pytest.raises(ValueError, match="unsupported period label.*FY2025"):
+        evaluate_claim(claim, facts)
+
+
 @pytest.mark.parametrize("claim", [_irr_min_claim(), _irr_max_claim()])
 def test_evaluate_claim_same_period_conflict_is_independent_of_evidence_id_order(
     claim: ThesisClaim,
