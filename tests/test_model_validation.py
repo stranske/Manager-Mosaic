@@ -60,13 +60,10 @@ def test_inverted_entry_period_range_is_reported() -> None:
 
     violations = validate(broken)
 
-    assert any(
-        v.record_id == "alpha-fund"
-        and "2025Q2" in v.message
-        and "2025Q1" in v.message
-        and "after" in v.message
-        for v in violations
-    )
+    assert [(violation.record_id, violation.message) for violation in violations] == [
+        ("alpha-fund", "first period '2025Q2' is after last period '2025Q1'")
+    ]
+    assert derive_gaps(broken) == ()
 
 
 def test_truncated_currency_suffix_is_reported() -> None:
