@@ -196,12 +196,15 @@ def test_evaluate_claim_same_period_conflict_is_independent_of_evidence_id_order
     claim: ThesisClaim,
 ) -> None:
     values = (8.0, 18.0)
+    equivalent_latest_periods = ("2025Q1", "Q1 2025")
     for assigned_ids in (("ev-a", "ev-z"), ("ev-z", "ev-a")):
         facts = [
             FactRecord("performance.irr", "fund-alpha", "2024Q4", 12.0, "ev-old"),
             *(
-                FactRecord("performance.irr", "fund-alpha", "2025Q1", value, evidence_id)
-                for value, evidence_id in zip(values, assigned_ids, strict=True)
+                FactRecord("performance.irr", "fund-alpha", period, value, evidence_id)
+                for period, value, evidence_id in zip(
+                    equivalent_latest_periods, values, assigned_ids, strict=True
+                )
             ),
         ]
 

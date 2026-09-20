@@ -23,14 +23,14 @@ ExpectedPattern = Literal["min", "max"]
 
 
 def _period_chronology_key(period: str) -> tuple[int, int, str]:
-    """Return a sortable key for common quarter period labels."""
+    """Return a sortable, normalized key for common quarter period labels."""
     normalized = period.strip()
     match = _QUARTER_YEAR.match(normalized)
     if match:
-        return (int(match.group(1)), int(match.group(2)), normalized)
+        return (int(match.group(1)), int(match.group(2)), "")
     match = _YEAR_QUARTER.match(normalized)
     if match:
-        return (int(match.group(2)), int(match.group(1)), normalized)
+        return (int(match.group(2)), int(match.group(1)), "")
     return (0, 0, normalized)
 
 
