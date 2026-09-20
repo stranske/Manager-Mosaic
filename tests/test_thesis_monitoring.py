@@ -195,8 +195,10 @@ def test_evaluate_claim_selects_chronologically_latest_across_period_formats() -
 def test_evaluate_claim_same_period_conflict_is_independent_of_evidence_id_order(
     claim: ThesisClaim,
 ) -> None:
+    """Relabeling equivalent conflicting facts must not change the thesis check."""
     values = (8.0, 18.0)
     equivalent_latest_periods = ("2025Q1", "Q1 2025")
+    checks = []
     for assigned_ids in (("ev-a", "ev-z"), ("ev-z", "ev-a")):
         facts = [
             FactRecord("performance.irr", "fund-alpha", "2024Q4", 12.0, "ev-old"),
@@ -209,9 +211,12 @@ def test_evaluate_claim_same_period_conflict_is_independent_of_evidence_id_order
         ]
 
         check = evaluate_claim(claim, facts)
+        checks.append(check)
 
         assert check.verdict == "at_risk"
         assert check.evidence_ids == ("ev-a", "ev-z")
+
+    assert checks[0] == checks[1]
 
 
 @pytest.mark.parametrize(
