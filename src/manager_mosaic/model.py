@@ -304,7 +304,7 @@ def _check_period_sort(
     value: Any,
 ) -> bool:
     """Return True when sort is safe to compare."""
-    if value is None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
         violations.append(ValidationViolation(record_id, "sort must be a finite number"))
         return False
     if isinstance(value, float) and not math.isfinite(value):
@@ -484,7 +484,12 @@ def _period_in_range(
     if first is None or last is None:
         return False
     bounds = (first.sort, last.sort, period_item.sort)
-    if any(value is None for value in bounds):
+    if any(
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or (isinstance(value, float) and not math.isfinite(value))
+        for value in bounds
+    ):
         return False
     return first.sort <= period_item.sort <= last.sort
 
