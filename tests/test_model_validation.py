@@ -148,6 +148,20 @@ def test_nonnumeric_period_sorts_are_violations_without_aborting() -> None:
         assert derive_gaps(broken) == ()
 
 
+def test_nonfinite_period_sorts_are_violations_without_aborting() -> None:
+    for bad_sort in (math.nan, math.inf, -math.inf):
+        payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+        payload["periods"][0]["sort"] = bad_sort
+        broken = Store.from_dict(payload)
+
+        violations = validate(broken)
+
+        assert any(
+            v.record_id == "2025Q1" and "sort must be finite" in v.message for v in violations
+        )
+        assert derive_gaps(broken) == ()
+
+
 def test_oversized_integer_sort_does_not_abort_validation() -> None:
     payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
     payload["periods"][0]["sort"] = 10**400
