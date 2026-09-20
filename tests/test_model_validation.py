@@ -52,6 +52,23 @@ def test_mistyped_entry_period_reference_is_reported() -> None:
     assert any(v.record_id == "alpha-fund" and "2025Q1_typo" in v.message for v in violations)
 
 
+def test_inverted_entry_period_range_is_reported() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["entries"][0]["first"] = "2025Q2"
+    payload["entries"][0]["last"] = "2025Q1"
+    broken = Store.from_dict(payload)
+
+    violations = validate(broken)
+
+    assert any(
+        v.record_id == "alpha-fund"
+        and "2025Q2" in v.message
+        and "2025Q1" in v.message
+        and "after" in v.message
+        for v in violations
+    )
+
+
 def test_truncated_currency_suffix_is_reported() -> None:
     payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
     payload["entries"][0]["mentions"][0]["size"] = "$B"

@@ -318,7 +318,8 @@ def validate(store: Store) -> list[ValidationViolation]:
     violations: list[ValidationViolation] = []
     seen_ids: dict[str, str] = {}
 
-    period_ids = {item.id for item in store.periods}
+    periods_by_id = {item.id: item for item in store.periods}
+    period_ids = set(periods_by_id)
     document_names = {item.name for item in store.documents}
 
     for period_item in store.periods:
@@ -360,6 +361,19 @@ def validate(store: Store) -> list[ValidationViolation]:
                 ValidationViolation(
                     entry_item.id,
                     f"period {entry_item.last!r} referenced but not defined",
+                )
+            )
+        first_period = periods_by_id.get(entry_item.first)
+        last_period = periods_by_id.get(entry_item.last)
+        if (
+            first_period is not None
+            and last_period is not None
+            and first_period.sort > last_period.sort
+        ):
+            violations.append(
+                ValidationViolation(
+                    entry_item.id,
+                    f"first period {entry_item.first!r} is after last period {entry_item.last!r}",
                 )
             )
         _check_finite(violations, entry_item.id, "peak", entry_item.peak)
