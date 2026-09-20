@@ -191,6 +191,26 @@ def test_evaluate_claim_selects_chronologically_latest_across_period_formats() -
     assert check.evidence_ids == ("ev-2025q1",)
 
 
+@pytest.mark.parametrize("claim", [_irr_min_claim(), _irr_max_claim()])
+def test_evaluate_claim_same_period_conflict_is_independent_of_evidence_id_order(
+    claim: ThesisClaim,
+) -> None:
+    values = (8.0, 18.0)
+    for assigned_ids in (("ev-a", "ev-z"), ("ev-z", "ev-a")):
+        facts = [
+            FactRecord("performance.irr", "fund-alpha", "2024Q4", 12.0, "ev-old"),
+            *(
+                FactRecord("performance.irr", "fund-alpha", "2025Q1", value, evidence_id)
+                for value, evidence_id in zip(values, assigned_ids, strict=True)
+            ),
+        ]
+
+        check = evaluate_claim(claim, facts)
+
+        assert check.verdict == "at_risk"
+        assert check.evidence_ids == ("ev-a", "ev-z")
+
+
 @pytest.mark.parametrize(
     "threshold",
     [math.nan, math.inf, -math.inf],
