@@ -220,6 +220,31 @@ def test_evaluate_claim_same_period_conflict_is_independent_of_evidence_id_order
 
 
 @pytest.mark.parametrize(
+    ("claim", "values", "expected_verdict"),
+    [
+        pytest.param(_irr_min_claim(), (10.0, 12.0), "supported", id="min-supported"),
+        pytest.param(_irr_min_claim(), (8.0, 9.0), "contradicted", id="min-contradicted"),
+        pytest.param(_irr_max_claim(), (13.0, 15.0), "supported", id="max-supported"),
+        pytest.param(_irr_max_claim(), (16.0, 18.0), "contradicted", id="max-contradicted"),
+    ],
+)
+def test_evaluate_claim_same_period_consistent_facts_retain_all_evidence(
+    claim: ThesisClaim,
+    values: tuple[float, float],
+    expected_verdict: str,
+) -> None:
+    facts = [
+        FactRecord("performance.irr", "fund-alpha", "2025Q1", values[0], "ev-b"),
+        FactRecord("performance.irr", "fund-alpha", "2025Q1", values[1], "ev-a"),
+    ]
+
+    check = evaluate_claim(claim, facts)
+
+    assert check.verdict == expected_verdict
+    assert check.evidence_ids == ("ev-a", "ev-b")
+
+
+@pytest.mark.parametrize(
     "threshold",
     [math.nan, math.inf, -math.inf],
     ids=["nan", "inf", "neg_inf"],
