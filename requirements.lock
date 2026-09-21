@@ -18,7 +18,7 @@ coverage==7.16.0
     # via pytest-cov
 iniconfig==2.3.0
     # via pytest
-jsonschema==4.22.0
+jsonschema==4.26.0
     # via manager-mosaic (pyproject.toml)
 jsonschema-specifications==2025.9.1
     # via jsonschema
@@ -65,9 +65,7 @@ rpds-py==2026.6.3
     #   referencing
 ruff==0.16.7
     # via manager-mosaic (pyproject.toml)
-types-jsonschema==4.23.0.20241208
+types-jsonschema==4.26.0.20260518
     # via manager-mosaic (pyproject.toml)
 typing-extensions==4.16.0
-    # via
-    #   mypy
-    #   referencing
+    # via mypy
