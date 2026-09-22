@@ -36,12 +36,7 @@ DEFAULT_TIMEOUT_SECONDS = 120
 # Compatible installed versions may exceed this Workflows-owned bootstrap floor;
 # automatic repair remains reproducibly pinned by PYTEST_RUNTIME_DEPENDENCIES.
 PYYAML_VERSION = "6.0.3"
-JSONSCHEMA_VERSION = "4.22.0"
-PYTEST_RUNTIME_DEPENDENCIES = (
-    f"pyyaml=={PYYAML_VERSION}",
-    f"jsonschema=={JSONSCHEMA_VERSION}",
-)
-PYTEST_RUNTIME_IMPORTS = ("yaml", "jsonschema")
+PYTEST_RUNTIME_DEPENDENCIES = (f"pyyaml=={PYYAML_VERSION}",)
 PYYAML_PROBE_SENTINEL = "__gate_pyyaml_import_ok__"
 PYYAML_PROBE_CODE = f"import yaml; print({PYYAML_PROBE_SENTINEL!r})"
 
@@ -122,6 +117,21 @@ def _explicit_marker(section: str) -> DeliberateBreakSpec | None:
         break_file = values.get("break-file") or values.get("revert-file")
         command_text = values.get("command")
         if not test_id or not test_file or not break_file:
+            # Checklist prose like "Deliberate-break: revert the X branch" matches
+            # MARKER_RE but is not a key=value marker; skip and keep searching.
+            if not any(
+                key in values
+                for key in (
+                    "test",
+                    "test-id",
+                    "test-file",
+                    "file",
+                    "break-file",
+                    "revert-file",
+                    "command",
+                )
+            ):
+                continue
             raise ValueError("deliberate-break marker requires test, test-file, and break-file")
         command = tuple(shlex.split(command_text)) if command_text else _pytest_command(test_id)
         return DeliberateBreakSpec(test_id, test_file, break_file, command)
@@ -147,7 +157,7 @@ def _extract_fallback_test_name(named_line: str) -> str | None:
     if unquoted:
         name = unquoted.group(1)
         tail = named_line[unquoted.end() :]
-        if not tail or tail[0] not in "_A-Za-z0-9":
+        if not tail or not (tail[0].isalnum() or tail[0] == "_"):
             return name
     return None
 
@@ -216,13 +226,13 @@ def _infer_break_file(break_line: str, named_line: str, markdown: str) -> str | 
     for text in (named_line, markdown):
         ordered_paths.extend(_candidate_paths(text))
 
-    workflow_paths = [
-        path
-        for path in ordered_paths
-        if ".github/workflows/" in path or path.endswith((".yml", ".yaml"))
-    ]
-    if workflow_paths:
-        return workflow_paths[0]
+    github_workflow_paths = [path for path in ordered_paths if ".github/workflows/" in path]
+    if github_workflow_paths:
+        return github_workflow_paths[0]
+
+    yaml_paths = [path for path in ordered_paths if path.endswith((".yml", ".yaml"))]
+    if yaml_paths:
+        return yaml_paths[0]
 
     return ordered_paths[0] if ordered_paths else None
 
@@ -239,7 +249,9 @@ def parse_deliberate_break_spec(markdown: str) -> DeliberateBreakSpec | None:
 
 
 def _pytest_command(test_id: str) -> tuple[str, ...]:
-    return (sys.executable, "-m", "pytest", test_id, "-q", "-o", "addopts=")
+    # This is a named-test proof, not a whole-suite coverage or plugin invocation.
+    # Keep repository configuration (including pythonpath), but clear addopts.
+    return (sys.executable, "-m", "pytest", test_id, "-o", "addopts=", "-q")
 
 
 def _supported_pyyaml_version(installed_version: str | None) -> bool:
@@ -263,67 +275,59 @@ def _supported_pyyaml_version(installed_version: str | None) -> bool:
     return installed_match.group("pre") is None and installed_match.group("dev") is None
 
 
-def _missing_pytest_runtime_imports() -> list[str]:
-    missing: list[str] = []
-    try:
-        installed_version = metadata.version("PyYAML")
-    except metadata.PackageNotFoundError:
-        installed_version = None
-    if not _supported_pyyaml_version(installed_version):
-        missing.append("yaml")
-    else:
-        try:
-            import_module("yaml")
-        except Exception:
-            missing.append("yaml")
-    for module_name in PYTEST_RUNTIME_IMPORTS:
-        if module_name == "yaml":
-            continue
-        try:
-            import_module(module_name)
-        except Exception:
-            missing.append(module_name)
-    return missing
-
-
 def _ensure_pytest_runtime_deps() -> None:
     """Install lightweight dependencies that Gate test-quality may not preinstall.
 
     Gate's test-quality job installs only ``pytest``. Deliberate-break may still
-    collect tests that import PyYAML (for example via ``sync_manifest_compiler``)
-    or other lightweight runtime deps declared in ``PYTEST_RUNTIME_DEPENDENCIES``.
+    collect tests that import PyYAML (for example via ``sync_manifest_compiler``).
     Installing here avoids editing ``pr-00-gate.yml``, which forces an
     Actions ``action_required`` approval wait on workflow-touching PRs.
     """
-    missing = _missing_pytest_runtime_imports()
-    if not missing:
-        return
-    if os.environ.get("GITHUB_ACTIONS") != "true":
-        packages = ", ".join(PYTEST_RUNTIME_DEPENDENCIES)
-        raise ImportError(
-            f"Deliberate-break requires {packages}; missing imports: {', '.join(missing)}"
+    try:
+        installed_version = metadata.version("PyYAML")
+    except metadata.PackageNotFoundError:
+        installed_version = None
+    import_error: Exception | None = None
+    if _supported_pyyaml_version(installed_version):
+        try:
+            import_module("yaml")
+        except Exception as exc:
+            # Any ordinary import-time failure means the installed distribution
+            # is unusable. Reinstall the locked wheel before collecting tests.
+            import_error = exc
+        else:
+            return
+    if not _supported_pyyaml_version(installed_version) or import_error is not None:
+        # Local and custom environments are user-owned; dependency repair may
+        # mutate the active interpreter only in GitHub Actions.
+        if os.environ.get("GITHUB_ACTIONS") != "true":
+            error = ImportError(
+                f"PyYAML >= {PYYAML_VERSION} is required; install "
+                f"'PyYAML>={PYYAML_VERSION}' in the active environment"
+            )
+            raise error from import_error
+        command = [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+        ]
+        if import_error is not None:
+            command.append("--force-reinstall")
+        command.extend(PYTEST_RUNTIME_DEPENDENCIES)
+        subprocess.run(
+            command,
+            check=True,
+            text=True,
+            capture_output=True,
+            timeout=DEFAULT_TIMEOUT_SECONDS,
         )
-    command = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--upgrade",
-        *PYTEST_RUNTIME_DEPENDENCIES,
-    ]
-    subprocess.run(
-        command,
-        check=True,
-        text=True,
-        capture_output=True,
-        timeout=DEFAULT_TIMEOUT_SECONDS,
-    )
-    still_missing = _missing_pytest_runtime_imports()
-    if still_missing:
-        raise ImportError(
-            "Deliberate-break runtime deps remained unavailable after install: "
-            + ", ".join(still_missing)
-        )
+        try:
+            import_module("yaml")
+        except Exception as retry_error:
+            error = ImportError(f"PyYAML remained unimportable after reinstall: {retry_error}")
+            raise error from (import_error or retry_error)
 
 
 def _pyyaml_runtime_needs_repair() -> bool:
@@ -710,18 +714,8 @@ def _run_with_runtime_deps(
     command: tuple[str, ...],
     cwd: Path,
 ) -> subprocess.CompletedProcess[str]:
-    """Run the check, repairing lightweight pytest imports when needed."""
+    """Run the check, repairing PyYAML only after a YAML-triggered failure."""
     managed_runtime = _uses_pytest_runtime(command)
-    if managed_runtime:
-        try:
-            _ensure_pytest_runtime_deps()
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.CalledProcessError,
-            ImportError,
-            OSError,
-        ) as exc:
-            raise RuntimeDependencyError(exc) from exc
     try:
         completed = _run(command, cwd)
     except OSError as exc:
@@ -780,6 +774,31 @@ def _run_with_runtime_deps(
         return _run(command, cwd)
     except OSError as exc:
         raise CommandUnavailableError(exc) from exc
+
+
+_MISSING_MODULE_RE = re.compile(r"ModuleNotFoundError: No module named ['\"]([^'\"]+)['\"]")
+# A ModuleNotFoundError only means "the test never ran" when pytest raised it while COLLECTING.
+# The same exception from inside a test body is an ordinary failure of a test that did run, and
+# reporting that as not-importable would hide a real acceptance failure behind an environment
+# excuse. Require pytest's own collection diagnostics as corroboration.
+_COLLECTION_ERROR_RE = re.compile(
+    r"ImportError while importing test module|ERROR collecting|errors during collection",
+    re.IGNORECASE,
+)
+
+
+def _missing_module_from_pytest_output(*streams: str | None) -> str | None:
+    """Return the module missing at COLLECTION time, or None if that is not the failure.
+
+    Collection-time ImportErrors surface inside pytest's captured output rather than as an
+    exception this script can catch, which is why they previously landed in the generic
+    head-test-failed branch.
+    """
+    joined = "\n".join(stream for stream in streams if stream)
+    if not joined or not _COLLECTION_ERROR_RE.search(joined):
+        return None
+    match = _MISSING_MODULE_RE.search(joined)
+    return match.group(1) if match else None
 
 
 def _runtime_dependency_error_result(error: Exception) -> dict[str, object]:
@@ -950,6 +969,27 @@ def verify_spec(
         )
 
     if head_run.returncode != 0:
+        # "The test could not be collected" and "the test ran and failed" are different facts,
+        # and reporting them under one reason made the gate unactionable: Deliverable-Render #20
+        # spent five autofix attempts on a missing runtime dependency while its own declaration
+        # was correct, because `head-test-failed` reads as an acceptance failure. Name the
+        # environment case so the next reader fixes the environment, not the PR.
+        missing = _missing_module_from_pytest_output(head_run.stdout, head_run.stderr)
+        if missing is not None:
+            return _json_result(
+                VERDICT_BROKEN,
+                reason="head-test-not-importable",
+                test_id=spec.test_id,
+                command=list(spec.command),
+                missing_module=missing,
+                detail=(
+                    f"The named test could not be imported: no module named {missing!r}. "
+                    "This is an environment defect, not a failed deliberate break -- the test "
+                    "never ran. Install the project and its dependencies before this check."
+                ),
+                stdout=head_run.stdout,
+                stderr=head_run.stderr,
+            )
         return _json_result(
             VERDICT_BROKEN,
             reason="head-test-failed",
