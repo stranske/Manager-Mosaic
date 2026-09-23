@@ -42,6 +42,32 @@ def test_detect_numeric_discrepancies_flags_conflicting_irr_values() -> None:
     assert set(record.evidence_ids) == {"ev-irr-a", "ev-irr-b"}
 
 
+def test_detect_numeric_discrepancies_groups_equivalent_period_labels() -> None:
+    facts = [
+        FactRecord("performance.irr", "fund-alpha", "2024Q4", 12.0, "ev-a"),
+        FactRecord("performance.irr", "fund-alpha", "Q4 2024", 18.0, "ev-b"),
+    ]
+
+    discrepancies = detect_numeric_discrepancies(facts, threshold_percent=5.0)
+
+    assert len(discrepancies) == 1
+    assert discrepancies[0].period == "2024Q4"
+    assert discrepancies[0].kind == "numeric_delta"
+    assert set(discrepancies[0].values) == {12.0, 18.0}
+
+
+def test_unparseable_periods_still_group_by_exact_label() -> None:
+    facts = [
+        FactRecord("performance.irr", "fund-alpha", "FY2025", 12.0, "ev-a"),
+        FactRecord("performance.irr", "fund-alpha", "FY2025", 18.0, "ev-b"),
+    ]
+
+    discrepancies = detect_numeric_discrepancies(facts, threshold_percent=5.0)
+
+    assert len(discrepancies) == 1
+    assert discrepancies[0].period == "FY2025"
+
+
 def test_threshold_boundary_equality_and_just_over() -> None:
     facts = _irr_pair()
 

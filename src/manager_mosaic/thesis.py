@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import math
-import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
 from manager_mosaic.discrepancy import FactRecord
-
-_YEAR_FIRST_QUARTER = re.compile(r"^(?P<year>\d{4})(?:Q|-Q)(?P<quarter>[1-4])$", re.IGNORECASE)
-_QUARTER_FIRST_YEAR = re.compile(r"^Q(?P<quarter>[1-4])\s+(?P<year>\d{4})$", re.IGNORECASE)
+from manager_mosaic.periods import period_chronology_key
 
 ThesisVerdict = Literal[
     "supported",
@@ -20,16 +17,6 @@ ThesisVerdict = Literal[
     "insufficient_evidence",
 ]
 ExpectedPattern = Literal["min", "max"]
-
-
-def _period_chronology_key(period: str) -> tuple[int, int, str]:
-    """Normalize ``YYYYQn``, ``YYYY-Qn``, and ``Qn YYYY`` for sorting."""
-    normalized = period.strip()
-    for pattern in (_YEAR_FIRST_QUARTER, _QUARTER_FIRST_YEAR):
-        match = pattern.match(normalized)
-        if match:
-            return (int(match.group("year")), int(match.group("quarter")), "")
-    raise ValueError(f"unsupported period label: {period!r}")
 
 
 @dataclass(frozen=True)
@@ -67,9 +54,9 @@ def evaluate_claim(claim: ThesisClaim, facts: Sequence[FactRecord]) -> ThesisChe
             evidence_ids=(),
         )
 
-    latest_period = max(_period_chronology_key(fact.period) for fact in matching)
+    latest_period = max(period_chronology_key(fact.period) for fact in matching)
     latest_facts = [
-        fact for fact in matching if _period_chronology_key(fact.period) == latest_period
+        fact for fact in matching if period_chronology_key(fact.period) == latest_period
     ]
     if claim.expected_pattern == "min":
         contradicted = [fact.value < claim.threshold for fact in latest_facts]

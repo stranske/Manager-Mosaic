@@ -9,6 +9,10 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
+from manager_mosaic.periods import period_chronology_key
+
+PeriodGroupKey = tuple[Literal["quarter"], int, int] | tuple[Literal["raw"], str]
+
 
 @dataclass(frozen=True)
 class FactRecord:
@@ -56,6 +60,15 @@ def _relative_spread_percent(values: Sequence[float]) -> float:
     return spread
 
 
+def _period_group_key(period: str) -> PeriodGroupKey:
+    """Return a normalized quarter key, preserving exact grouping otherwise."""
+    try:
+        year, quarter, _ = period_chronology_key(period)
+    except ValueError:
+        return ("raw", period)
+    return ("quarter", year, quarter)
+
+
 def detect_numeric_discrepancies(
     facts: Sequence[FactRecord],
     *,
@@ -67,12 +80,18 @@ def detect_numeric_discrepancies(
             "threshold_percent must be a non-negative finite number, " f"got {threshold_percent!r}"
         )
 
-    grouped: dict[tuple[str, str, str], list[FactRecord]] = defaultdict(list)
+    grouped: dict[tuple[str, str, PeriodGroupKey], list[FactRecord]] = defaultdict(list)
+    representative_periods: dict[tuple[str, str, PeriodGroupKey], str] = {}
     for fact in facts:
-        grouped[(fact.fact_key, fact.entity_ref, fact.period)].append(fact)
+        group_key = (fact.fact_key, fact.entity_ref, _period_group_key(fact.period))
+        grouped[group_key].append(fact)
+        # Preserve the first observed label so output remains stable and human-readable.
+        representative_periods.setdefault(group_key, fact.period)
 
     discrepancies: list[DiscrepancyRecord] = []
-    for (fact_key, entity_ref, period), group in sorted(grouped.items()):
+    for group_key, group in sorted(grouped.items()):
+        fact_key, entity_ref, _ = group_key
+        period = representative_periods[group_key]
         if len(group) < 2:
             continue
         values = tuple(fact.value for fact in group)
