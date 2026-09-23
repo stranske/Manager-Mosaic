@@ -67,6 +67,13 @@ def test_unparseable_periods_still_group_by_exact_label() -> None:
     assert len(discrepancies) == 1
     assert discrepancies[0].period == "FY2025"
 
+    distinct_labels = [
+        FactRecord("performance.irr", "fund-alpha", "FY2025", 12.0, "ev-c"),
+        FactRecord("performance.irr", "fund-alpha", "FY 2025", 18.0, "ev-d"),
+    ]
+
+    assert detect_numeric_discrepancies(distinct_labels, threshold_percent=5.0) == []
+
 
 def test_threshold_boundary_equality_and_just_over() -> None:
     facts = _irr_pair()
