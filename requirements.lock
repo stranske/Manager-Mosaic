@@ -14,7 +14,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   click
     #   pytest
-coverage==7.16.0
+coverage==7.16.1
     # via pytest-cov
 iniconfig==2.3.0
     # via pytest
@@ -63,7 +63,7 @@ rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.16.8
+ruff==0.16.9
     # via manager-mosaic (pyproject.toml)
 types-jsonschema==4.23.0.20241208
     # via manager-mosaic (pyproject.toml)

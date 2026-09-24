@@ -6,7 +6,7 @@ black==26.5.1
     # via my-project (pyproject.toml)
 click==8.3.1
     # via black
-coverage==7.16.0
+coverage==7.16.1
     # via pytest-cov
 iniconfig==2.3.0
     # via pytest
@@ -42,7 +42,7 @@ pytest-cov==7.1.0
     # via my-project (pyproject.toml)
 pytokens==0.4.1
     # via black
-ruff==0.16.8
+ruff==0.16.9
     # via my-project (pyproject.toml)
 typing-extensions==4.15.0
     # via mypy
