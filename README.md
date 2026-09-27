@@ -12,6 +12,9 @@ Created 2026-09-04 on the owner's decision, after an inventory of the work envir
 
 That split is deliberate: the same three concerns are currently solved three times over in the work environment, once per tracker.
 
+The canonical list of user-facing capabilities, entry points, and probes is in
+the [product contract](docs/PRODUCT_CONTRACT.md).
+
 ## Invariants taken from real failures, not from theory
 
 1. **Silence is weak evidence, never proof.** A position missing from a document is a gap, not an exit. Inferring a removal from an absence has already produced a wrong finding.
