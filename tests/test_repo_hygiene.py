@@ -40,3 +40,12 @@ def test_generated_dirs_untracked_and_vendored_preserved() -> None:
         ".github/scripts/node_modules/minimatch/package.json",
     )
     assert vendored_ignore.returncode == 1, "vendored minimatch tree must not be ignored"
+
+
+def test_product_contract_documents_core_functions() -> None:
+    contract = REPO_ROOT / "docs" / "PRODUCT_CONTRACT.md"
+
+    assert contract.is_file(), "docs/PRODUCT_CONTRACT.md must document the core functions"
+    contents = contract.read_text(encoding="utf-8")
+    for core_function in range(1, 7):
+        assert f"CF-{core_function}" in contents
