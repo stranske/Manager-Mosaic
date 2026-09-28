@@ -201,6 +201,16 @@ RUNNER_JS = textwrap.dedent("""
           state: 'success',
           error: makeError(403, 'Forbidden', { 'retry-after': '60' }),
         }),
+        fork_final_429: await runCase({
+          ...FORK,
+          state: 'success',
+          error: makeError(429, 'Too many requests'),
+        }),
+        fork_unrelated_403: await runCase({
+          ...FORK,
+          state: 'success',
+          error: makeError(403, 'Forbidden'),
+        }),
         fork_server_error: await runCase({
           ...FORK,
           state: 'success',
@@ -320,6 +330,7 @@ def test_rate_limit_403_keeps_its_own_path(outcomes: dict[str, Any]) -> None:
         "fork_rate_limit_response_message",
         "fork_primary_rate_limit_header",
         "fork_secondary_rate_limit_header",
+        "fork_final_429",
     ):
         case = outcomes[key]
         assert case["threw"] is None
@@ -340,6 +351,14 @@ def test_rate_limit_403_fails_closed_for_non_success_verdicts(
 
 def test_non_403_errors_still_fail_the_gate(outcomes: dict[str, Any]) -> None:
     assert outcomes["fork_server_error"]["threw"]["status"] == 500
+
+
+def test_unrelated_fork_403_still_fails_the_gate(outcomes: dict[str, Any]) -> None:
+    case = outcomes["fork_unrelated_403"]
+    assert case["threw"]["status"] == 403
+    assert case["summaryWrites"] == 0
+    assert case["failures"] == []
+    assert not any("read-only" in warning for warning in case["warnings"])
 
 
 def test_successful_status_write_is_silent(outcomes: dict[str, Any]) -> None:

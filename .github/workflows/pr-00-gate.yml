@@ -1173,12 +1173,14 @@ jobs:
               );
             } catch (error) {
               const responseHeaders = error?.response?.headers || {};
+              const errorStatus = error?.status ?? error?.response?.status;
               const hitRateLimit =
-                error?.status === 403 &&
-                (/rate limit|abuse/i.test(error?.message || '') ||
+                errorStatus === 429 ||
+                (errorStatus === 403 &&
+                  (/rate limit|abuse/i.test(error?.message || '') ||
                   /rate limit|abuse/i.test(error?.response?.data?.message || '') ||
                   String(responseHeaders['x-ratelimit-remaining']) === '0' ||
-                  responseHeaders['retry-after'] != null);
+                  responseHeaders['retry-after'] != null));
               // Pull requests opened from forks receive a read-only token, so the
               // status write is refused even after Gate has computed its verdict.
               // Keep same-repository permission failures loud and preserve the
@@ -1191,8 +1193,21 @@ jobs:
                 baseRepo &&
                   (headRepoObject === null || (headRepo && headRepo !== baseRepo)),
               );
+              const permissionMessage = [
+                error?.message,
+                error?.response?.data?.message,
+              ]
+                .filter(Boolean)
+                .join(' ');
+              const isIntegrationPermissionError =
+                /resource not accessible by integration|insufficient permission|requires higher permissions/i.test(
+                  permissionMessage,
+                );
               const readOnlyForkToken =
-                error?.status === 403 && isForkPullRequest && !hitRateLimit;
+                errorStatus === 403 &&
+                isForkPullRequest &&
+                !hitRateLimit &&
+                isIntegrationPermissionError;
               if (hitRateLimit) {
                 core.warning(
                   'Rate limit prevented Gate from updating the commit status; ' +
