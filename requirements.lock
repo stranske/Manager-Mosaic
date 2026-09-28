@@ -54,6 +54,8 @@ pytest-cov==7.1.0
     # via manager-mosaic (pyproject.toml)
 pytokens==0.4.1
     # via black
+pyyaml==6.0.3
+    # via manager-mosaic (pyproject.toml)
 referencing==0.37.0
     # via
     #   jsonschema
