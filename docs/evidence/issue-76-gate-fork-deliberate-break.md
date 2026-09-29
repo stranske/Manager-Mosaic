@@ -17,7 +17,7 @@ Literal baseline output:
 ```text
 ============================= test session starts ==============================
 platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
-rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-76
+rootdir: <repository-root>
 configfile: pyproject.toml
 plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -52,7 +52,7 @@ Re-run the named gate. Literal output:
 ```text
 ============================= test session starts ==============================
 platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
-rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-76
+rootdir: <repository-root>
 configfile: pyproject.toml
 plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -96,7 +96,7 @@ Restore the predicate exactly and rerun the same command. Literal output:
 ```text
 ============================= test session starts ==============================
 platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
-rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-76
+rootdir: <repository-root>
 configfile: pyproject.toml
 plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
