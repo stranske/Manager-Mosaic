@@ -53,3 +53,18 @@ def test_fact_key_registry_is_readable_through_package_resources(
     monkeypatch.setattr(fact_keys, "_REPO_REGISTRY_PATH", tmp_path / "absent" / "registry.json")
     assert not fact_keys._REPO_REGISTRY_PATH.is_file()
     assert load_fact_key_registry() == packaged_keys
+
+
+def test_source_and_packaged_fact_key_registries_match() -> None:
+    """The editable and installed-package registries must not drift."""
+    repo_root = Path(__file__).resolve().parents[1]
+    source_payload = json.loads(
+        (repo_root / "config" / "fact_key_registry.json").read_text(encoding="utf-8")
+    )
+    packaged_payload = json.loads(
+        (repo_root / "src" / "manager_mosaic" / "fact_key_registry.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert source_payload == packaged_payload
