@@ -294,6 +294,11 @@ def _check_finite(
 ) -> None:
     if value is None:
         return
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        violations.append(
+            ValidationViolation(record_id, f"{field} must be a finite number or null")
+        )
+        return
     if isinstance(value, float) and not math.isfinite(value):
         violations.append(ValidationViolation(record_id, f"{field} must be finite, got {value!r}"))
 

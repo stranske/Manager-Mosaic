@@ -34,6 +34,11 @@ def test_fixture_validates_against_json_schema() -> None:
     _validate_schema("minimal_store.json")
 
 
+def test_public_and_packaged_schemas_match() -> None:
+    public_schema = Path("schemas/mosaic-store-v1.schema.json")
+    assert json.loads(public_schema.read_text(encoding="utf-8")) == load_schema()
+
+
 def test_mistyped_entry_period_reference_is_reported() -> None:
     broken = Store.from_dict(
         {
@@ -98,6 +103,25 @@ def test_derive_gaps_leaves_status_unchanged() -> None:
     gaps = derive_gaps(store)
     assert store.entries[0].status == before_status
     assert any("2025Q2" in item.title for item in gaps)
+    assert any("2025Q2" in item.title and item.sev == "info" for item in gaps)
+
+
+def test_nonnumeric_mention_bps_is_reported() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["entries"][0]["mentions"][0]["bps"] = "25"
+    violations = validate(Store.from_dict(payload))
+    assert [(v.record_id, v.message) for v in violations] == [
+        ("alpha-fund:mention[0]", "bps must be a finite number or null")
+    ]
+
+
+def test_boolean_peak_is_reported() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["entries"][0]["peak"] = True
+    violations = validate(Store.from_dict(payload))
+    assert [(v.record_id, v.message) for v in violations] == [
+        ("alpha-fund", "peak must be a finite number or null")
+    ]
 
 
 def test_validator_returns_all_four_defects() -> None:
@@ -175,15 +199,15 @@ def test_oversized_integer_sort_does_not_abort_validation() -> None:
 
 
 def _forbidden_infer_exit_on_gap(store: Store) -> str:
-    """Anti-pattern: treating absence as proof of exit (must never ship)."""
+    """Illustrate the forbidden inference; this helper is not a production break gate."""
 
     if derive_gaps(store):
         return "EXITED"
     return store.entries[0].status
 
 
-def test_silence_invariant_deliberate_break_then_revert() -> None:
-    """Deliberate-break gate documented in the PR body."""
+def test_silence_invariant_example() -> None:
+    """Keep the original example while a separate regression tests production code."""
 
     store = _load("minimal_store.json")
     assert store.entries[0].status == "ACTIVE"
