@@ -239,6 +239,36 @@ def test_discrepancy_strict_mode_preserves_threshold_error_precedence() -> None:
         )
 
 
+def test_evaluate_claim_opt_in_alias_reports_fact_only_unregistered_key() -> None:
+    """Step 5 alias: a fact-only typo raises instead of insufficient_evidence."""
+    claim = _claim("irr-floor", "performance.irr")
+    facts = [_fact("ev-irr-typo", "performance.irrr")]
+
+    # Legacy caller: no flag, the typo'd fact simply does not match.
+    assert evaluate_claim(claim, facts).verdict == "insufficient_evidence"
+
+    # Both opt-in spellings on evaluate_claim report the fact's identity.
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        evaluate_claim(claim, facts, strict_fact_keys=True)
+    assert [(v.record_id, v.fact_key, v.record_kind) for v in excinfo.value.violations] == [
+        ("ev-irr-typo", "performance.irrr", "fact")
+    ]
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        evaluate_claim(claim, facts, validate_fact_keys_opt_in=True)
+    assert [(v.record_id, v.fact_key, v.record_kind) for v in excinfo.value.violations] == [
+        ("ev-irr-typo", "performance.irrr", "fact")
+    ]
+
+
+def test_evaluate_claim_opt_in_alias_evaluates_registered_keys() -> None:
+    claim = _claim("irr-floor", "performance.irr")
+    facts = [_fact("ev-irr-ok", "performance.irr")]
+
+    check = evaluate_claim(claim, facts, validate_fact_keys_opt_in=True)
+    assert check.verdict == "supported"
+    assert check.evidence_ids == ("ev-irr-ok",)
+
+
 def test_source_and_packaged_fact_key_registries_match() -> None:
     """The editable and installed-package registries must not drift."""
     repo_root = Path(__file__).resolve().parents[1]

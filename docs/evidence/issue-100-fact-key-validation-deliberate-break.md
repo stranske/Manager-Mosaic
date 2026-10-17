@@ -87,3 +87,26 @@ result `6 failed, 6 passed`. Restored the file and reran:
 `12 passed`. Canonical `python -m pytest tests/test_fact_key_registry.py -q`
 collects 12 tests and reports `12 passed` (the repo-wide 80%
 total-coverage gate still applies to this single-file run, as above).
+
+## Follow-up: evaluate_claim opt-in alias and fact-only typo
+
+New regressions:
+`test_evaluate_claim_opt_in_alias_reports_fact_only_unregistered_key`
+(registered claim, typo'd fact: legacy `insufficient_evidence`, both
+`strict_fact_keys=True` and `validate_fact_keys_opt_in=True` raise with
+`('ev-irr-typo', 'performance.irrr', 'fact')`) and
+`test_evaluate_claim_opt_in_alias_evaluates_registered_keys`.
+PRODUCT_CONTRACT journey step 5 now documents the alias for `evaluate_claim`.
+
+Deliberate break: temporarily inserted an early `return []` in
+`validate_fact_keys` in `src/manager_mosaic/fact_keys.py`, then ran
+`python -m pytest tests/test_fact_key_registry.py -q --no-cov`:
+result `7 failed, 7 passed`, including
+`test_evaluate_claim_opt_in_alias_reports_fact_only_unregistered_key`
+(`DID NOT RAISE UnregisteredFactKeyError`). Restored the file
+(`git checkout -- src/manager_mosaic/fact_keys.py`) and reran the
+canonical `python -m pytest tests/test_fact_key_registry.py -q`:
+collects 14 tests, `14 passed` (exit non-zero only from the repo-wide
+80% total-coverage gate at 61.06% on this single-file run, as above).
+Black: `python -m black --check --line-length 100 --workers 1 --exclude '(\.workflows-lib|node_modules)' .`
+passes (99 files unchanged; `--workers 1` avoids the sandbox socket limit).
