@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
+from manager_mosaic.fact_keys import UnregisteredFactKeyError, validate_fact_keys
 from manager_mosaic.periods import period_chronology_key
 
 PeriodGroupKey = tuple[Literal["quarter"], int, int] | tuple[Literal["raw"], str]
@@ -73,8 +74,22 @@ def detect_numeric_discrepancies(
     facts: Sequence[FactRecord],
     *,
     threshold_percent: float = 5.0,
+    strict_fact_keys: bool = False,
+    fact_key_registry: frozenset[str] | None = None,
 ) -> list[DiscrepancyRecord]:
-    """Flag fact groups that disagree beyond ``threshold_percent`` relative spread."""
+    """Flag fact groups that disagree beyond ``threshold_percent`` relative spread.
+
+    Fact-key validation is opt-in. With ``strict_fact_keys=True`` every
+    fact_key is checked against ``load_fact_key_registry()`` and any
+    unregistered key raises :class:`UnregisteredFactKeyError` carrying
+    every violation, instead of silently grouping a typo'd key apart from
+    its registered counterpart. Callers omitting the flag retain the
+    previous behaviour exactly.
+    """
+    if strict_fact_keys:
+        violations = validate_fact_keys(facts, registry=fact_key_registry)
+        if violations:
+            raise UnregisteredFactKeyError(violations)
     if not math.isfinite(threshold_percent) or threshold_percent < 0:
         raise ValueError(
             "threshold_percent must be a non-negative finite number, " f"got {threshold_percent!r}"

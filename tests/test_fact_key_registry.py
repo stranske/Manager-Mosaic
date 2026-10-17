@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from manager_mosaic import fact_keys
-from manager_mosaic.discrepancy import FactRecord
+from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
 from manager_mosaic.fact_keys import (
     UnregisteredFactKeyError,
     load_fact_key_registry,
@@ -151,6 +151,58 @@ def test_validate_fact_keys_accepts_registered_keys_and_strict_mode_evaluates() 
     check = evaluate_claim(claim, facts, strict_fact_keys=True)
     assert check.verdict == "supported"
     assert check.evidence_ids == ("ev-irr-ok",)
+
+
+def test_discrepancy_opted_in_validation_reports_unregistered_key() -> None:
+    """Typo'd keys are unrelated groups for legacy callers, violations when opted in."""
+    facts = [
+        _fact("ev-irr-ok", "performance.irr"),
+        FactRecord(
+            fact_key="performance.irrr",
+            entity_ref="fund-alpha",
+            period="2024Q4",
+            value=20.0,
+            evidence_id="ev-irr-typo",
+        ),
+    ]
+
+    # Legacy caller: the typo'd key forms its own singleton group, no discrepancy.
+    assert detect_numeric_discrepancies(facts) == []
+
+    violations = validate_fact_keys(facts)
+    assert [(v.record_id, v.fact_key) for v in violations] == [("ev-irr-typo", "performance.irrr")]
+
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        detect_numeric_discrepancies(facts, strict_fact_keys=True)
+    assert [(v.record_id, v.fact_key) for v in excinfo.value.violations] == [
+        ("ev-irr-typo", "performance.irrr")
+    ]
+
+
+def test_discrepancy_strict_mode_reports_all_violations_and_still_detects_valid() -> None:
+    bad = [
+        _fact("ev-bad-1", "performance.irrr"),
+        _fact("ev-bad-2", "liquidity.unknown"),
+    ]
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        detect_numeric_discrepancies(bad, strict_fact_keys=True)
+    assert {(v.record_id, v.fact_key) for v in excinfo.value.violations} == {
+        ("ev-bad-1", "performance.irrr"),
+        ("ev-bad-2", "liquidity.unknown"),
+    }
+
+    valid = [
+        _fact("ev-1", "performance.irr"),
+        FactRecord(
+            fact_key="performance.irr",
+            entity_ref="fund-alpha",
+            period="2024Q4",
+            value=20.0,
+            evidence_id="ev-2",
+        ),
+    ]
+    discrepancies = detect_numeric_discrepancies(valid, strict_fact_keys=True)
+    assert [d.evidence_ids for d in discrepancies] == [("ev-1", "ev-2")]
 
 
 def test_source_and_packaged_fact_key_registries_match() -> None:

@@ -47,3 +47,22 @@ collects 8 tests and reports `8 passed`; its total-coverage gate (80%,
 configured repo-wide) reports 51.69% for this single-file run because
 unrelated modules are barely exercised — a pre-existing single-file
 coverage effect, not a test failure.
+
+## Follow-up: discrepancy strict mode
+
+Production change: opt-in `strict_fact_keys=True` in
+`src/manager_mosaic/discrepancy.py::detect_numeric_discrepancies`, reusing
+`validate_fact_keys` from `src/manager_mosaic/fact_keys.py`.
+
+RED before: the two new discrepancy tests failed with
+`TypeError: detect_numeric_discrepancies() got an unexpected keyword argument 'strict_fact_keys'` (2 failed, 8 passed).
+
+Deliberate break: temporarily replaced the body of `validate_fact_keys`
+in `src/manager_mosaic/fact_keys.py` with an early `return []`, then ran
+`python -m pytest tests/test_fact_key_registry.py -q --no-cov`:
+result `5 failed, 5 passed`, including both discrepancy regressions
+(`DID NOT RAISE UnregisteredFactKeyError`). Restored the file and reran:
+`10 passed`. The canonical `python -m pytest tests/test_fact_key_registry.py -q`
+collects 10 tests and reports `10 passed` (exit 1 only from the repo-wide
+80% total-coverage gate at 60.73% on this single-file run, as above).
+Black: `black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` passes (99 files unchanged).
