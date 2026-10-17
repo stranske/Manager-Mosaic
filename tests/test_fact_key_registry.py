@@ -11,8 +11,11 @@ from manager_mosaic import fact_keys
 from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
 from manager_mosaic.fact_keys import (
     UnregisteredFactKeyError,
+    ensure_registered_fact_keys,
     load_fact_key_registry,
+    validate_claim_and_facts,
     validate_fact_keys,
+    validate_facts_and_claims,
 )
 from manager_mosaic.thesis import ThesisClaim, evaluate_claim
 
@@ -151,6 +154,36 @@ def test_validate_fact_keys_accepts_registered_keys_and_strict_mode_evaluates() 
     check = evaluate_claim(claim, facts, strict_fact_keys=True)
     assert check.verdict == "supported"
     assert check.evidence_ids == ("ev-irr-ok",)
+
+
+def test_public_validation_helper_aliases_delegate_with_claim_and_fact_identity() -> None:
+    claim = _claim("claim-typo", "performance.irrr")
+    facts = [_fact("fact-typo", "liquidity.unknown")]
+
+    expected = [("claim-typo", "performance.irrr"), ("fact-typo", "liquidity.unknown")]
+    assert [
+        (violation.record_id, violation.fact_key)
+        for violation in validate_claim_and_facts(claim, facts)
+    ] == expected
+    assert [
+        (violation.record_id, violation.fact_key)
+        for violation in validate_facts_and_claims(facts, [claim])
+    ] == expected
+
+
+def test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_violations() -> None:
+    registered_claim = _claim("irr-floor", "performance.irr")
+    registered_facts = [_fact("ev-irr-ok", "performance.irr")]
+    assert ensure_registered_fact_keys(registered_facts, [registered_claim]) is None
+
+    bad_claim = _claim("claim-typo", "performance.irrr")
+    bad_facts = [_fact("fact-typo", "liquidity.unknown")]
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        ensure_registered_fact_keys(bad_facts, [bad_claim])
+    assert [(violation.record_id, violation.fact_key) for violation in excinfo.value.violations] == [
+        ("claim-typo", "performance.irrr"),
+        ("fact-typo", "liquidity.unknown"),
+    ]
 
 
 def test_discrepancy_opted_in_validation_reports_unregistered_key() -> None:
