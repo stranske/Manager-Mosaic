@@ -66,3 +66,24 @@ result `5 failed, 5 passed`, including both discrepancy regressions
 collects 10 tests and reports `10 passed` (exit 1 only from the repo-wide
 80% total-coverage gate at 60.73% on this single-file run, as above).
 Black: `black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` passes (99 files unchanged).
+
+## Follow-up: primary-journey wiring parity
+
+Production change: `detect_numeric_discrepancies` now accepts the same
+`validate_fact_keys_opt_in=True` alias as `evaluate_claim`, and validates
+`threshold_percent` before strict fact-key validation so legacy error
+precedence is preserved. New regressions:
+`test_primary_journey_pre_step_then_strict_steps_report_typo_end_to_end`
+and `test_discrepancy_strict_mode_preserves_threshold_error_precedence`.
+
+RED before: `2 failed` (`TypeError: ... unexpected keyword argument
+'validate_fact_keys_opt_in'`; threshold test got
+`UnregisteredFactKeyError` instead of the `threshold_percent` ValueError).
+
+Deliberate break: temporarily replaced the body of `validate_fact_keys`
+in `src/manager_mosaic/fact_keys.py` with an early `return []`, then ran
+`python -m pytest tests/test_fact_key_registry.py -q --no-cov`:
+result `6 failed, 6 passed`. Restored the file and reran:
+`12 passed`. Canonical `python -m pytest tests/test_fact_key_registry.py -q`
+collects 12 tests and reports `12 passed` (the repo-wide 80%
+total-coverage gate still applies to this single-file run, as above).

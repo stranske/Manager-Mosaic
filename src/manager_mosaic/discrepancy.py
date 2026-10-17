@@ -75,25 +75,27 @@ def detect_numeric_discrepancies(
     *,
     threshold_percent: float = 5.0,
     strict_fact_keys: bool = False,
+    validate_fact_keys_opt_in: bool = False,
     fact_key_registry: frozenset[str] | None = None,
 ) -> list[DiscrepancyRecord]:
     """Flag fact groups that disagree beyond ``threshold_percent`` relative spread.
 
-    Fact-key validation is opt-in. With ``strict_fact_keys=True`` every
+    Fact-key validation is opt-in. With ``strict_fact_keys=True`` (alias:
+    ``validate_fact_keys_opt_in=True``, as on ``evaluate_claim``) every
     fact_key is checked against ``load_fact_key_registry()`` and any
     unregistered key raises :class:`UnregisteredFactKeyError` carrying
     every violation, instead of silently grouping a typo'd key apart from
     its registered counterpart. Callers omitting the flag retain the
     previous behaviour exactly.
     """
-    if strict_fact_keys:
-        violations = validate_fact_keys(facts, registry=fact_key_registry)
-        if violations:
-            raise UnregisteredFactKeyError(violations)
     if not math.isfinite(threshold_percent) or threshold_percent < 0:
         raise ValueError(
             "threshold_percent must be a non-negative finite number, " f"got {threshold_percent!r}"
         )
+    if strict_fact_keys or validate_fact_keys_opt_in:
+        violations = validate_fact_keys(facts, registry=fact_key_registry)
+        if violations:
+            raise UnregisteredFactKeyError(violations)
 
     grouped: dict[tuple[str, str, PeriodGroupKey], list[FactRecord]] = defaultdict(list)
     representative_periods: dict[tuple[str, str, PeriodGroupKey], str] = {}

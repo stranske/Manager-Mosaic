@@ -205,6 +205,40 @@ def test_discrepancy_strict_mode_reports_all_violations_and_still_detects_valid(
     assert [d.evidence_ids for d in discrepancies] == [("ev-1", "ev-2")]
 
 
+def test_primary_journey_pre_step_then_strict_steps_report_typo_end_to_end() -> None:
+    """Journey steps 3-5: pre-step validation, then strict discrepancy/evaluate."""
+    claim = _claim("irr-floor", "performance.irrr")
+    facts = [_fact("ev-irr-ok", "performance.irr"), _fact("ev-irr-typo", "performance.irrr")]
+
+    # Step 3 documented pre-step reports the typo with record identity.
+    violations = validate_fact_keys(facts, claims=[claim])
+    assert {(v.record_id, v.fact_key) for v in violations} == {
+        ("irr-floor", "performance.irrr"),
+        ("ev-irr-typo", "performance.irrr"),
+    }
+    # Steps 4-5 strict modes surface the same violation instead of grouping/evaluating.
+    with pytest.raises(UnregisteredFactKeyError):
+        detect_numeric_discrepancies(facts, strict_fact_keys=True)
+    with pytest.raises(UnregisteredFactKeyError):
+        evaluate_claim(claim, facts, strict_fact_keys=True)
+    # The discrepancy step accepts the same opt-in alias spelling as evaluate_claim.
+    with pytest.raises(UnregisteredFactKeyError):
+        detect_numeric_discrepancies(facts, validate_fact_keys_opt_in=True)
+    # Legacy callers omitting every opt-in retain previous behaviour.
+    assert detect_numeric_discrepancies(facts) == []
+    assert evaluate_claim(claim, facts).verdict == "supported"
+
+
+def test_discrepancy_strict_mode_preserves_threshold_error_precedence() -> None:
+    """An invalid threshold stays a ValueError even when strict validation is on."""
+    with pytest.raises(ValueError, match="threshold_percent"):
+        detect_numeric_discrepancies(
+            [_fact("ev-bad", "performance.irrr")],
+            threshold_percent=-1.0,
+            strict_fact_keys=True,
+        )
+
+
 def test_source_and_packaged_fact_key_registries_match() -> None:
     """The editable and installed-package registries must not drift."""
     repo_root = Path(__file__).resolve().parents[1]
