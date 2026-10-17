@@ -8,6 +8,11 @@ from dataclasses import dataclass
 from typing import Literal
 
 from manager_mosaic.discrepancy import FactRecord
+from manager_mosaic.fact_keys import (
+    FactKeyViolation,
+    UnregisteredFactKeyError,
+    validate_fact_keys,
+)
 from manager_mosaic.periods import period_chronology_key
 
 ThesisVerdict = Literal[
@@ -40,8 +45,30 @@ class ThesisCheck:
     evidence_ids: tuple[str, ...]
 
 
-def evaluate_claim(claim: ThesisClaim, facts: Sequence[FactRecord]) -> ThesisCheck:
-    """Evaluate one thesis claim against matching facts for the same entity and key."""
+def evaluate_claim(
+    claim: ThesisClaim,
+    facts: Sequence[FactRecord],
+    *,
+    strict_fact_keys: bool = False,
+    validate_fact_keys_opt_in: bool = False,
+    fact_key_registry: frozenset[str] | None = None,
+) -> ThesisCheck:
+    """Evaluate one thesis claim against matching facts for the same entity and key.
+
+    Fact-key validation is opt-in. With ``strict_fact_keys=True`` (alias:
+    ``validate_fact_keys_opt_in=True``) every fact_key on the claim and on
+    all supplied facts is checked against ``load_fact_key_registry()`` and
+    any unregistered key raises :class:`UnregisteredFactKeyError` carrying
+    every violation, instead of silently returning
+    ``insufficient_evidence`` for a typo'd key. Callers omitting the flag
+    retain the previous behaviour exactly.
+    """
+    if strict_fact_keys or validate_fact_keys_opt_in:
+        violations: list[FactKeyViolation] = validate_fact_keys(
+            facts, claims=[claim], registry=fact_key_registry
+        )
+        if violations:
+            raise UnregisteredFactKeyError(violations)
     matching = [
         fact
         for fact in facts

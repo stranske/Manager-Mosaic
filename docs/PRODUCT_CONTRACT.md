@@ -12,6 +12,7 @@ data; it does not require a hosted service or database.
 | CF-2 | An analyst can derive coverage gaps without changing entry status. | `manager_mosaic.model.derive_gaps(Store)` | Missing mentions in active periods are listed as gaps; silence does not change an entry's status. |
 | CF-3 | An analyst can compare evidence for the same fact and see numeric conflicts. | `manager_mosaic.discrepancy.detect_numeric_discrepancies(facts)` | Conflicting values for a normalized `(fact_key, entity_ref, period)` surface as `numeric_delta` discrepancies. |
 | CF-4 | An analyst can evaluate an investment-thesis claim against available facts. | `manager_mosaic.thesis.evaluate_claim(claim, facts)` | The latest normalized-period facts produce `supported`, `at_risk`, `contradicted`, or `insufficient_evidence`. |
+| CF-7 | An analyst can check fact and claim keys against the registered vocabulary before evaluation. | `manager_mosaic.fact_keys.validate_fact_keys(facts, claims)` or `evaluate_claim(claim, facts, strict_fact_keys=True)` | Every unregistered `fact_key` is returned in one pass as a `FactKeyViolation` with record identity (`claim_id` for claims, `evidence_id` for facts); strict mode raises `UnregisteredFactKeyError`. A valid input returns `[]`. Opt-in only: callers omitting validation retain previous behaviour. |
 | CF-5 | An analyst can validate an `evidence-object/v1` payload and see every defect. | `manager_mosaic.validate_evidence_object(payload)` | Schema and excerpt-presence violations are returned in one pass; a valid payload returns `[]`. |
 | CF-6 | An operator can validate a consumer ingest fixture offline and see whether it conforms. | `scripts/validate_run_contract.py <fixture> --registry config/backplane_participants.json` | Declared consumer `ingests` are checked; a non-conformant fixture exits non-zero. |
 
@@ -19,9 +20,9 @@ data; it does not require a hosted service or database.
 
 1. Load a local mosaic store and run `validate`.
 2. Run `derive_gaps` to surface missing coverage without inferring an exit.
-3. Build evidence-linked `FactRecord` values from source material.
+3. Build evidence-linked `FactRecord` values from source material, then explicitly validate fact keys (opt-in): run `manager_mosaic.fact_keys.validate_fact_keys(facts, claims=[claim, ...])`, which checks every key against `load_fact_key_registry()` and returns all unregistered-key violations with record identity in one pass. Alternatively pass `strict_fact_keys=True` to `evaluate_claim` (step 5) to raise `UnregisteredFactKeyError` instead of returning `insufficient_evidence` for a typo'd key. Callers that omit both retain the previous behaviour.
 4. Run `detect_numeric_discrepancies` across comparable facts.
-5. Run `evaluate_claim` for each investment-thesis claim.
+5. Run `evaluate_claim` for each investment-thesis claim (or `evaluate_claim(..., strict_fact_keys=True)` per the opt-in in step 3).
 6. Validate every linked evidence payload with `validate_evidence_object`.
 
 ## Probe commands

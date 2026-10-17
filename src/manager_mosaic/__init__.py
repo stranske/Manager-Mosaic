@@ -1,6 +1,12 @@
 """Manager mosaic: evidence-linked facts, discrepancy detection, and thesis monitoring."""
 
 from manager_mosaic.evidence import validate_evidence_object
+from manager_mosaic.fact_keys import (
+    FactKeyViolation,
+    UnregisteredFactKeyError,
+    load_fact_key_registry,
+    validate_fact_keys,
+)
 from manager_mosaic.model import (
     Document,
     Entry,
@@ -47,8 +53,12 @@ __all__ = [
     "period",
     "pub",
     "theme",
+    "FactKeyViolation",
+    "UnregisteredFactKeyError",
+    "load_fact_key_registry",
     "validate",
     "validate_evidence_object",
+    "validate_fact_keys",
     "greet",
     "add",
 ]
