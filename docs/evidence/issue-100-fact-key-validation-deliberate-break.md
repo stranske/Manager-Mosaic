@@ -134,3 +134,18 @@ run, below the repo-wide 80% gate, as above). Targeted coverage
 `pytest tests/test_fact_key_registry.py --cov=manager_mosaic.fact_keys --cov-report=term-missing -q -m "not slow" --override-ini="addopts=" --cov-config=/dev/null`
 reports `src/manager_mosaic/fact_keys.py` at 99% (1 miss, line 81).
 Black check above passes (99 files unchanged).
+
+## Follow-up: claim-and-facts unregistered rather than insufficient_evidence
+
+New regression:
+`test_opted_in_validation_reports_claim_and_facts_rather_than_insufficient_evidence`
+(claim `performance.irrr` + fact `liquidity.unknownn`: legacy
+`insufficient_evidence`, explicit `validate_fact_keys` reports both with
+`record_kind`/`kind`, strict `evaluate_claim` raises both).
+
+Deliberate break: temporarily inserted an early `return []` in
+`validate_fact_keys` in `src/manager_mosaic/fact_keys.py`, then ran the new
+regression: result `1 failed`. Restored the file and reran canonical
+`python -m pytest tests/test_fact_key_registry.py -q`: collects 20 tests,
+`20 passed` (total coverage 66.39% on this single-file run, below the
+repo-wide 80% gate, as above). Black: 99 files unchanged.

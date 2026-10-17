@@ -110,6 +110,41 @@ def test_opted_in_validation_reports_unregistered_key_instead_of_insufficient_ev
     assert "performance.irrr" in str(excinfo.value)
 
 
+def test_opted_in_validation_reports_claim_and_facts_rather_than_insufficient_evidence() -> None:
+    """Both a claim and its facts using unregistered keys: violation, not insufficient_evidence.
+
+    The claim and facts carry *different* unregistered keys, so a legacy
+    caller finds no matching fact and returns ``insufficient_evidence`` —
+    indistinguishable from a genuinely absent fact. Opted-in validation
+    must instead report every unregistered key with record identity.
+    """
+    claim = _claim("irr-floor", "performance.irrr")
+    facts = [_fact("ev-liquidity-typo", "liquidity.unknownn")]
+
+    # Legacy caller omitting validation retains the previous behaviour.
+    legacy = evaluate_claim(claim, facts)
+    assert legacy.verdict == "insufficient_evidence"
+    assert legacy.evidence_ids == ()
+
+    # Explicit pre-step (documented primary-journey step 3) reports both.
+    violations = validate_fact_keys(facts, claims=[claim])
+    assert [(v.record_id, v.fact_key, v.record_kind, v.kind) for v in violations] == [
+        ("irr-floor", "performance.irrr", "claim", "unregistered_fact_key"),
+        ("ev-liquidity-typo", "liquidity.unknownn", "fact", "unregistered_fact_key"),
+    ]
+    assert all("unregistered" in v.message for v in violations)
+
+    # Opted-in strict mode raises the same violations instead of evaluating.
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        evaluate_claim(claim, facts, strict_fact_keys=True)
+    assert [(v.record_id, v.fact_key) for v in excinfo.value.violations] == [
+        ("irr-floor", "performance.irrr"),
+        ("ev-liquidity-typo", "liquidity.unknownn"),
+    ]
+    assert "performance.irrr" in str(excinfo.value)
+    assert "liquidity.unknownn" in str(excinfo.value)
+
+
 def test_legacy_caller_with_matching_unregistered_key_retains_previous_behaviour() -> None:
     """Callers omitting validation keep the old verdict even for unregistered keys."""
     claim = _claim("irr-floor", "performance.irrr")
