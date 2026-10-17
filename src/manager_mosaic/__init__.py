@@ -4,8 +4,11 @@ from manager_mosaic.evidence import validate_evidence_object
 from manager_mosaic.fact_keys import (
     FactKeyViolation,
     UnregisteredFactKeyError,
+    ensure_registered_fact_keys,
     load_fact_key_registry,
+    validate_claim_and_facts,
     validate_fact_keys,
+    validate_facts_and_claims,
 )
 from manager_mosaic.model import (
     Document,
@@ -55,10 +58,13 @@ __all__ = [
     "theme",
     "FactKeyViolation",
     "UnregisteredFactKeyError",
+    "ensure_registered_fact_keys",
     "load_fact_key_registry",
     "validate",
+    "validate_claim_and_facts",
     "validate_evidence_object",
     "validate_fact_keys",
+    "validate_facts_and_claims",
     "greet",
     "add",
 ]

@@ -149,3 +149,15 @@ regression: result `1 failed`. Restored the file and reran canonical
 `python -m pytest tests/test_fact_key_registry.py -q`: collects 20 tests,
 `20 passed` (total coverage 66.39% on this single-file run, below the
 repo-wide 80% gate, as above). Black: 99 files unchanged.
+
+## Follow-up: package top-level validator exports
+
+`manager_mosaic/__init__.py` now also exports `validate_claim_and_facts`,
+`validate_facts_and_claims`, and `ensure_registered_fact_keys` (previously
+only in `manager_mosaic.fact_keys.__all__`). New regression:
+`test_package_top_level_exports_fact_claim_validator_helpers`.
+Deliberate break: removing the `validate_claim_and_facts` top-level import
+made that regression fail (`AttributeError ... no attribute
+'validate_claim_and_facts'`, `1 failed`); restored and reran:
+`21 passed` via canonical `python -m pytest tests/test_fact_key_registry.py -q`
+(single-file total coverage below the repo-wide 80% gate, as above).

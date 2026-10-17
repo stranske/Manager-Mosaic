@@ -206,6 +206,28 @@ def test_public_validation_helper_aliases_delegate_with_claim_and_fact_identity(
     ] == expected
 
 
+def test_package_top_level_exports_fact_claim_validator_helpers() -> None:
+    """The validator is reachable from `manager_mosaic`, not only its submodule."""
+    import manager_mosaic
+
+    for name in (
+        "ensure_registered_fact_keys",
+        "validate_claim_and_facts",
+        "validate_fact_keys",
+        "validate_facts_and_claims",
+    ):
+        assert name in manager_mosaic.__all__
+        assert getattr(manager_mosaic, name) is getattr(fact_keys, name)
+
+    claim = _claim("claim-typo", "performance.irrr")
+    facts = [_fact("fact-typo", "liquidity.unknown")]
+    assert [
+        (v.record_id, v.fact_key) for v in manager_mosaic.validate_claim_and_facts(claim, facts)
+    ] == [("claim-typo", "performance.irrr"), ("fact-typo", "liquidity.unknown")]
+    with pytest.raises(UnregisteredFactKeyError):
+        manager_mosaic.ensure_registered_fact_keys(facts, [claim])
+
+
 def test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_violations() -> None:
     registered_claim = _claim("irr-floor", "performance.irr")
     registered_facts = [_fact("ev-irr-ok", "performance.irr")]
