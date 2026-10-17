@@ -180,7 +180,9 @@ def test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_viol
     bad_facts = [_fact("fact-typo", "liquidity.unknown")]
     with pytest.raises(UnregisteredFactKeyError) as excinfo:
         ensure_registered_fact_keys(bad_facts, [bad_claim])
-    assert [(violation.record_id, violation.fact_key) for violation in excinfo.value.violations] == [
+    assert [
+        (violation.record_id, violation.fact_key) for violation in excinfo.value.violations
+    ] == [
         ("claim-typo", "performance.irrr"),
         ("fact-typo", "liquidity.unknown"),
     ]
@@ -300,6 +302,72 @@ def test_evaluate_claim_opt_in_alias_evaluates_registered_keys() -> None:
     check = evaluate_claim(claim, facts, validate_fact_keys_opt_in=True)
     assert check.verdict == "supported"
     assert check.evidence_ids == ("ev-irr-ok",)
+
+
+def test_validate_fact_keys_reports_identity_for_generic_records() -> None:
+    """Records without claim/evidence ids still report a stable identity."""
+
+    class _Record:
+        def __init__(self, fact_key: str, **ids: str) -> None:
+            self.fact_key = fact_key
+            for name, value in ids.items():
+                setattr(self, name, value)
+
+    by_record_id = validate_fact_keys([_Record("fees.unknown", record_id="rec-1")])
+    assert [(v.record_id, v.fact_key, v.record_kind, v.kind) for v in by_record_id] == [
+        ("rec-1", "fees.unknown", "record", "unregistered_fact_key")
+    ]
+
+    by_id = validate_fact_keys([_Record("fees.unknown", id="rec-2")])
+    assert [(v.record_id, v.record_kind) for v in by_id] == [("rec-2", "record")]
+
+    anonymous = _Record("fees.unknown")
+    by_repr = validate_fact_keys([anonymous])
+    assert [(v.record_id, v.fact_key) for v in by_repr] == [(repr(anonymous), "fees.unknown")]
+
+
+def test_validate_fact_keys_accepts_single_records_bare_keys_and_custom_registries(
+    tmp_path: Path,
+) -> None:
+    claim = _claim("irr-floor", "performance.irrr")
+    fact = _fact("ev-typo", "performance.irrr")
+
+    # Single records (not sequences) and bare key strings are validated in one pass.
+    assert [(v.record_id, v.fact_key) for v in validate_fact_keys(fact, claims=claim)] == [
+        ("irr-floor", "performance.irrr"),
+        ("ev-typo", "performance.irrr"),
+    ]
+    assert [
+        (v.record_id, v.fact_key, v.record_kind) for v in validate_fact_keys("fees.unknown")
+    ] == [("fees.unknown", "fees.unknown", "fact_key")]
+    assert validate_fact_keys() == []
+
+    # An explicit in-memory or on-disk registry replaces the default vocabulary.
+    assert validate_fact_keys(facts=[fact], registry={"performance.irrr"}) == []
+    registry_file = tmp_path / "registry.json"
+    registry_file.write_text(json.dumps({"keys": ["performance.irrr"]}), encoding="utf-8")
+    assert validate_fact_keys(facts=[fact], registry=registry_file) == []
+    assert validate_fact_keys(facts=[fact], registry_path=str(registry_file)) == []
+    assert [(v.record_id, v.fact_key) for v in validate_fact_keys(facts=[fact], registry=[])] == [
+        ("ev-typo", "performance.irrr")
+    ]
+
+
+def test_validate_fact_keys_rejects_records_without_fact_key_and_bad_registries(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(TypeError, match="no fact_key"):
+        validate_fact_keys([object()])
+
+    empty_registry = tmp_path / "empty.json"
+    empty_registry.write_text(json.dumps({"keys": []}), encoding="utf-8")
+    with pytest.raises(ValueError, match="non-empty 'keys' list"):
+        load_fact_key_registry(empty_registry)
+
+    missing_keys = tmp_path / "missing.json"
+    missing_keys.write_text(json.dumps({"other": []}), encoding="utf-8")
+    with pytest.raises(ValueError, match="non-empty 'keys' list"):
+        validate_fact_keys([_fact("ev-1", "performance.irr")], registry=missing_keys)
 
 
 def test_source_and_packaged_fact_key_registries_match() -> None:

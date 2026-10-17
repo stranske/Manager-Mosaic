@@ -110,3 +110,27 @@ collects 14 tests, `14 passed` (exit non-zero only from the repo-wide
 80% total-coverage gate at 61.06% on this single-file run, as above).
 Black: `python -m black --check --line-length 100 --workers 1 --exclude '(\.workflows-lib|node_modules)' .`
 passes (99 files unchanged; `--workers 1` avoids the sandbox socket limit).
+
+## Follow-up: validator identity and registry edge paths
+
+New regressions: `test_validate_fact_keys_reports_identity_for_generic_records`
+(`record_id`/`id`/`repr` identity, `record_kind`, `kind`),
+`test_validate_fact_keys_accepts_single_records_bare_keys_and_custom_registries`
+(single record, bare key string, empty input, in-memory/`Path`/`registry_path`
+registries), and `test_validate_fact_keys_rejects_records_without_fact_key_and_bad_registries`
+(`TypeError` for a record without `fact_key`; `ValueError` for empty/missing
+registry `keys`).
+
+Deliberate break: temporarily inserted an early `return []` in
+`validate_fact_keys` in `src/manager_mosaic/fact_keys.py`, then ran the two
+new identity/input regressions plus
+`test_opted_in_validation_reports_unregistered_key_instead_of_insufficient_evidence`:
+result `3 failed`. Restored the file (`git checkout -- src/manager_mosaic/fact_keys.py`)
+and reran: `19 passed`.
+
+Canonical `python -m pytest tests/test_fact_key_registry.py -q` collects
+19 tests and reports `19 passed` (total coverage 66.39% on this single-file
+run, below the repo-wide 80% gate, as above). Targeted coverage
+`pytest tests/test_fact_key_registry.py --cov=manager_mosaic.fact_keys --cov-report=term-missing -q -m "not slow" --override-ini="addopts=" --cov-config=/dev/null`
+reports `src/manager_mosaic/fact_keys.py` at 99% (1 miss, line 81).
+Black check above passes (99 files unchanged).
