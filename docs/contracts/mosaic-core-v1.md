@@ -65,26 +65,6 @@ and `entity_ref: fund:synthetic_alpha` joins the synthetic fact fixture. The
 Doc-Lineage `fact_key_map` artifact maps each `variable_id` to its original
 `ontology_key` and `entity_ref`; it does not infer or silently rewrite identity.
 
-### Canonical discrepancy identity
-
-A discrepancy ID is injective compact JSON of `[fact_key, entity_ref, period_key]`.
-The canonical period key is `["quarter", year, quarter]` using the shared
-`period_chronology_key` normalizer, or `["raw", exact_label]` for unsupported
-periods. For example, `2025Q1`, `2025-Q1`, and `Q1 2025` all yield
-`["performance.irr","fund:alpha",["quarter",2025,1]]` for the same fact key and
-entity. Quarter aliases and input permutations therefore identify the same
-discrepancy; unsupported labels remain distinct and retain their exact text,
-including whitespace and characters requiring JSON escaping. The display `period`
-is the lexicographically smallest original label in its group and does not define
-identity. Values and evidence IDs retain their pairwise associations in input order.
-
-Compatibility: IDs previously serialized the first raw period label. Persisted
-review state or links keyed to those IDs need explicit migration/recomputation
-from the original fact group; old IDs are not silently treated as equivalent.
-Thresholds, grouping rules and thesis verdicts are unchanged.
-
-### Evidence references
-
 `primary_evidence_id` and `evidence_ids` reference separately validated
 `evidence-object/v1` records. Importers must verify reference existence, the
 fact/claim associations, and primary-document locators. This single-record
