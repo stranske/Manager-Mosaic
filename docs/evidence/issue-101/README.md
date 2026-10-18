@@ -224,3 +224,23 @@ Observed this session:
   `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made them
   pass (exit 0). Both outputs are in
   [model-provenance-fact-bases-break.txt](model-provenance-fact-bases-break.txt).
+
+## Explicit-unknown accessor provenance (follow-up)
+
+New regression `test_result_provenance_accessors_treat_explicit_unknown_as_unset`
+in `tests/test_model_validation.py`: an explicit `basis="unknown"` exposes the
+same `bases`/`evidence_bases`/`value_bases` unknown provenance as a legacy
+omitted basis on `ThesisCheck`, and stays unknown beside an inferred fact with a
+repeated evidence ID in both `ThesisCheck` and `DiscrepancyRecord`.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — **69 passed**
+  (single-file coverage gate 73% < 80% exits 1 as before; full suite below).
+- Deliberate break: removing `'unknown'` from `FACT_BASES` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `ValueError: unsupported fact basis: 'unknown'`; byte-for-byte restore
+  (`cmp` identical, sha256
+  `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made it
+  pass. See
+  [model-provenance-explicit-unknown-break.txt](model-provenance-explicit-unknown-break.txt).

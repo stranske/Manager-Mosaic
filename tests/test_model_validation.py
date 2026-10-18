@@ -571,6 +571,40 @@ def test_top_level_fact_provenance_exports_match_model() -> None:
         manager_mosaic.FactRecord("m", "e", "2025Q1", 1.0, "ev", basis="extracted")  # type: ignore[arg-type]
 
 
+def test_result_provenance_accessors_treat_explicit_unknown_as_unset() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    # An explicit basis="unknown" is a supported basis, not an observation: it
+    # must expose the same unknown provenance as a legacy omitted basis.
+    explicit = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="unknown")
+    legacy = FactRecord("metric", "entity", "2025Q1", 8.0, "shared")
+    assert explicit.basis == legacy.basis == "unknown"
+    explicit_check = evaluate_claim(claim, [explicit])
+    legacy_check = evaluate_claim(claim, [legacy])
+    assert explicit_check.bases == legacy_check.bases == ("unknown",)
+    assert explicit_check.evidence_bases == legacy_check.evidence_bases == (("shared", "unknown"),)
+    assert explicit_check.value_bases == legacy_check.value_bases == ((8.0, "shared", "unknown"),)
+
+    # Explicit unknown stays unknown beside an inferred fact, with the repeated
+    # evidence ID retained once per contributing fact in both result types.
+    inferred = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="inferred")
+    mixed_check = evaluate_claim(claim, [inferred, explicit])
+    assert mixed_check.bases == ("unknown", "inferred")
+    assert mixed_check.value_bases == (
+        (8.0, "shared", "unknown"),
+        (12.0, "shared", "inferred"),
+    )
+    discrepancy = detect_numeric_discrepancies([explicit, inferred])[0]
+    assert discrepancy.bases == ("unknown", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "unknown"), ("shared", "inferred"))
+    assert discrepancy.value_bases == (
+        (8.0, "shared", "unknown"),
+        (12.0, "shared", "inferred"),
+    )
+
+
 def _typed_mention(**changes: Any) -> Store:
     """Exercise the retained typed API independently of raw-payload admission."""
     store = _load("minimal_store.json")
