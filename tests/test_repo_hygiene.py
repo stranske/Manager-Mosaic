@@ -2,6 +2,7 @@
 
 import ast
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -55,20 +56,70 @@ def test_product_contract_documents_core_functions() -> None:
 
 def test_public_contract_entrypoints_have_audited_dispositions() -> None:
     catalog = json.loads((REPO_ROOT / "docs/audits/contract-enforcement-catalog.json").read_text())
-    audited = {row["source"] for row in catalog["entrypoints"]}
+    rows = catalog["entrypoints"]
+    audited = {row["source"] for row in rows}
+    assert len(audited) == len(rows), "Duplicate entry points hide conflicting dispositions"
     report = (REPO_ROOT / "contract-enforcement-audit.md").read_text()
+    available: set[str] = set()
     for path in (REPO_ROOT / "src/manager_mosaic").glob("*.py"):
         tree = ast.parse(path.read_text())
+        names: set[str] = set()
         for node in tree.body:
-            if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and not node.name.startswith("_"):
-                entrypoint = f"{path.relative_to(REPO_ROOT)}:{node.name}"
-                assert entrypoint in audited, f"Unmapped public input: {entrypoint}"
-    for row in catalog["entrypoints"]:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                if node.name.startswith("_"):
+                    continue
+                names.add(node.name)
+                if isinstance(node, ast.ClassDef):
+                    names.update(
+                        f"{node.name}.{member.name}"
+                        for member in node.body
+                        if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        and (
+                            not member.name.startswith("_")
+                            or member.name in {"__init__", "__post_init__"}
+                        )
+                    )
+            # Submodule exports include aliases such as fact_keys.ValidationViolation.
+            # Root re-exports are covered at their canonical defining module.
+            if (
+                path.name != "__init__.py"
+                and isinstance(node, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "__all__"
+                    for target in node.targets
+                )
+            ):
+                names.update(ast.literal_eval(node.value))
+        available.update(f"{path.relative_to(REPO_ROOT)}:{name}" for name in names)
+    assert available <= audited, f"Unmapped public inputs: {sorted(available - audited)}"
+    contract = (REPO_ROOT / "docs/PRODUCT_CONTRACT.md").read_text()
+    valid_functions = {f"CF-{number}" for number in range(1, 8)}
+    for row in rows:
         assert row["source"] in report
-        assert (REPO_ROOT / row["probe"]).is_file()
+        probe_path = REPO_ROOT / row["probe"]
+        assert probe_path.is_file()
+        probe_names = {
+            node.name
+            for node in ast.parse(probe_path.read_text()).body
+            if isinstance(node, ast.FunctionDef)
+        }
+        assert row["probe_name"] in probe_names, f"Missing probing test: {row}"
+        assert f"{row['probe']}::{row['probe_name']}" in report
+        assert row["contracts"], row
+        assert all((REPO_ROOT / contract_path).is_file() for contract_path in row["contracts"])
         assert row["owner"]
+        assert set(row["core_functions"]) <= valid_functions, row
+        assert all(function in contract for function in row["core_functions"]), row
+        assert row["core_functions"] or row.get("outside_contract"), row
+        if row["source"].startswith("src/") and row.get("availability") != "planned":
+            assert row["source"] in available, f"Stale inventory entry: {row['source']}"
         if row["classification"] in {"confirmed-bug", "needs-investigation"}:
             assert row["issues"], row
+    for line in report.splitlines():
+        if "confirmed-bug" in line or "needs-investigation" in line:
+            assert re.search(
+                r"\[#([1-9]\d*)\]\(https://github\.com/stranske/Manager-Mosaic/issues/\1\)", line
+            ), f"Unfiled audit finding: {line}"
 
 
 def test_packaged_contract_resources_have_audited_consumers() -> None:

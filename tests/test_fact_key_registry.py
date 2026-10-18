@@ -85,6 +85,58 @@ def _fact(evidence_id: str, fact_key: str) -> FactRecord:
     )
 
 
+@pytest.mark.parametrize("alias", [False, True], ids=["strict", "alias"])
+def test_public_validators_consult_default_fact_key_registry(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, alias: bool
+) -> None:
+    """The real registry controls validation, including keys added or removed locally."""
+    registry_file = tmp_path / "registry.json"
+    registry_file.write_text(json.dumps({"keys": ["audit.registered_metric"]}), encoding="utf-8")
+    monkeypatch.setattr(fact_keys, "_REPO_REGISTRY_PATH", registry_file)
+    claim = _claim("claim-custom", "audit.registered_metric")
+    registered = _fact("ev-custom", "audit.registered_metric")
+    removed = _fact("ev-removed", "performance.irr")
+
+    assert validate_fact_keys([registered], claims=[claim]) == []
+    assert [
+        (v.record_id, v.fact_key, v.record_kind)
+        for v in validate_fact_keys([registered, removed], claims=[claim])
+    ] == [("ev-removed", "performance.irr", "fact")]
+
+    assert (
+        evaluate_claim(
+            claim, [registered], strict_fact_keys=not alias, validate_fact_keys_opt_in=alias
+        ).verdict
+        == "supported"
+    )
+    assert (
+        detect_numeric_discrepancies(
+            [registered], strict_fact_keys=not alias, validate_fact_keys_opt_in=alias
+        )
+        == []
+    )
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        evaluate_claim(
+            claim,
+            [registered, removed],
+            strict_fact_keys=not alias,
+            validate_fact_keys_opt_in=alias,
+        )
+    assert [(v.record_id, v.fact_key, v.record_kind) for v in excinfo.value.violations] == [
+        ("ev-removed", "performance.irr", "fact")
+    ]
+    with pytest.raises(UnregisteredFactKeyError) as excinfo:
+        detect_numeric_discrepancies(
+            [registered, removed], strict_fact_keys=not alias, validate_fact_keys_opt_in=alias
+        )
+    assert [(v.record_id, v.fact_key, v.record_kind) for v in excinfo.value.violations] == [
+        ("ev-removed", "performance.irr", "fact")
+    ]
+    # Unflagged callers still evaluate the matching custom fact without validation.
+    assert evaluate_claim(claim, [registered, removed]).verdict == "supported"
+    assert detect_numeric_discrepancies([registered, removed]) == []
+
+
 def test_opted_in_validation_reports_unregistered_key_instead_of_insufficient_evidence() -> None:
     """A typo'd claim key is an unregistered-key violation when validation is opted in."""
     claim = _claim("irr-floor", "performance.irrr")

@@ -7,7 +7,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Period",
@@ -15,7 +23,16 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Pub",
@@ -23,7 +40,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_builders_create_expected_entry"
     },
     {
       "source": "src/manager_mosaic/model.py:Mention",
@@ -31,7 +56,16 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_builders_create_expected_entry"
     },
     {
       "source": "src/manager_mosaic/model.py:Entry",
@@ -39,7 +73,16 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_builders_create_expected_entry"
     },
     {
       "source": "src/manager_mosaic/model.py:Theme",
@@ -47,7 +90,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Document",
@@ -55,7 +106,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Gap",
@@ -63,7 +122,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_derive_gaps_leaves_status_unchanged"
     },
     {
       "source": "src/manager_mosaic/model.py:Store",
@@ -73,7 +140,16 @@
         96
       ],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Store.__post_init__",
@@ -81,7 +157,16 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Store.from_dict",
@@ -91,7 +176,15 @@
         96
       ],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:Store.from_json",
@@ -101,7 +194,15 @@
         96
       ],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:ValidationViolation",
@@ -109,7 +210,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_validator_returns_all_four_defects"
     },
     {
       "source": "src/manager_mosaic/model.py:fund",
@@ -117,7 +226,15 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:period",
@@ -125,7 +242,16 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:pub",
@@ -133,7 +259,15 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_builders_create_expected_entry"
     },
     {
       "source": "src/manager_mosaic/model.py:mention",
@@ -141,7 +275,16 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_builders_create_expected_entry"
     },
     {
       "source": "src/manager_mosaic/model.py:entry",
@@ -149,7 +292,16 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_builders_create_expected_entry"
     },
     {
       "source": "src/manager_mosaic/model.py:theme",
@@ -157,7 +309,15 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:document",
@@ -165,7 +325,15 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported"
     },
     {
       "source": "src/manager_mosaic/model.py:gap",
@@ -173,7 +341,15 @@
       "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_derive_gaps_leaves_status_unchanged"
     },
     {
       "source": "src/manager_mosaic/model.py:validate",
@@ -181,7 +357,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_validator_returns_all_four_defects"
     },
     {
       "source": "src/manager_mosaic/model.py:derive_gaps",
@@ -189,7 +373,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-2"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_derive_gaps_leaves_status_unchanged"
     },
     {
       "source": "src/manager_mosaic/model.py:load_schema",
@@ -197,25 +389,50 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1",
+        "CF-5"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_public_and_packaged_schemas_match"
     },
     {
       "source": "src/manager_mosaic/evidence.py:load_evidence_schema",
       "classification": "already-correct",
-      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "rule": "Packaged evidence-object/v1 loader used by the public validator.",
       "issues": [],
       "probe": "tests/test_evidence_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-5"
+      ],
+      "contracts": [
+        "docs/contracts/document-identity-conventions.md",
+        "src/manager_mosaic/schemas/evidence-object-v1.schema.json"
+      ],
+      "probe_name": "test_evidence_schema_is_readable_through_package_resources"
     },
     {
       "source": "src/manager_mosaic/evidence.py:validate_evidence_object",
       "classification": "confirmed-bug",
-      "rule": "Identity page/date/supersession rules missing on this public path; existing PR112 repairs them.",
+      "rule": "Schema and excerpt presence are enforced; cross-field page agreement, calendar dates and self-supersession are missing (#97).",
       "issues": [
         97
       ],
       "probe": "tests/test_evidence_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-5"
+      ],
+      "contracts": [
+        "docs/contracts/document-identity-conventions.md",
+        "src/manager_mosaic/schemas/evidence-object-v1.schema.json"
+      ],
+      "probe_name": "test_validate_evidence_object_reports_every_violation"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:load_fact_key_registry",
@@ -223,7 +440,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_fact_key_registry_is_readable_through_package_resources"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:FactKeyViolation",
@@ -231,7 +458,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_validate_fact_keys_returns_all_violations_in_one_pass"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:UnregisteredFactKeyError",
@@ -239,7 +476,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_violations"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:validate_fact_keys",
@@ -247,7 +494,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_public_validators_consult_default_fact_key_registry"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:validate_claim_and_facts",
@@ -255,7 +512,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_public_validation_helper_aliases_delegate_with_claim_and_fact_identity"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:validate_facts_and_claims",
@@ -263,7 +530,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_public_validation_helper_aliases_delegate_with_claim_and_fact_identity"
     },
     {
       "source": "src/manager_mosaic/fact_keys.py:ensure_registered_fact_keys",
@@ -271,7 +548,17 @@
       "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
       "issues": [],
       "probe": "tests/test_fact_key_registry.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_violations"
     },
     {
       "source": "src/manager_mosaic/discrepancy.py:FactRecord",
@@ -281,7 +568,17 @@
         101
       ],
       "probe": "tests/test_discrepancy_detection.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md",
+        "docs/contracts/tracked-variable-v1.md"
+      ],
+      "probe_name": "test_non_finite_fact_value_rejected"
     },
     {
       "source": "src/manager_mosaic/discrepancy.py:FactRecord.__post_init__",
@@ -289,7 +586,17 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_discrepancy_detection.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md",
+        "docs/contracts/tracked-variable-v1.md"
+      ],
+      "probe_name": "test_non_finite_fact_value_rejected"
     },
     {
       "source": "src/manager_mosaic/discrepancy.py:DiscrepancyRecord",
@@ -299,7 +606,16 @@
         101
       ],
       "probe": "tests/test_discrepancy_detection.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md",
+        "docs/contracts/tracked-variable-v1.md"
+      ],
+      "probe_name": "test_detect_numeric_discrepancies_groups_equivalent_period_labels"
     },
     {
       "source": "src/manager_mosaic/discrepancy.py:detect_numeric_discrepancies",
@@ -310,7 +626,16 @@
         101
       ],
       "probe": "tests/test_discrepancy_detection.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md",
+        "docs/contracts/tracked-variable-v1.md"
+      ],
+      "probe_name": "test_detect_numeric_discrepancies_groups_equivalent_period_labels"
     },
     {
       "source": "src/manager_mosaic/thesis.py:ThesisClaim",
@@ -318,7 +643,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_thesis_monitoring.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md"
+      ],
+      "probe_name": "test_thesis_claim_rejects_non_finite_threshold"
     },
     {
       "source": "src/manager_mosaic/thesis.py:ThesisClaim.__post_init__",
@@ -326,7 +659,15 @@
       "rule": "Typed local values; explicit semantic validation where applicable.",
       "issues": [],
       "probe": "tests/test_thesis_monitoring.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md"
+      ],
+      "probe_name": "test_thesis_claim_rejects_non_finite_threshold"
     },
     {
       "source": "src/manager_mosaic/thesis.py:ThesisCheck",
@@ -336,7 +677,15 @@
         101
       ],
       "probe": "tests/test_thesis_monitoring.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md"
+      ],
+      "probe_name": "test_evaluate_claim_selects_chronologically_latest_across_period_formats"
     },
     {
       "source": "src/manager_mosaic/thesis.py:evaluate_claim",
@@ -346,7 +695,15 @@
         101
       ],
       "probe": "tests/test_thesis_monitoring.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md"
+      ],
+      "probe_name": "test_evaluate_claim_selects_chronologically_latest_across_period_formats"
     },
     {
       "source": "src/manager_mosaic/periods.py:period_chronology_key",
@@ -354,7 +711,16 @@
       "rule": "One shared quarter parser; unsupported labels fail explicitly for chronology; discrepancy raw labels remain exact.",
       "issues": [],
       "probe": "tests/test_thesis_monitoring.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md"
+      ],
+      "probe_name": "test_evaluate_claim_selects_chronologically_latest_across_period_formats"
     },
     {
       "source": "src/manager_mosaic/__init__.py:greet",
@@ -362,7 +728,13 @@
       "rule": "Compatibility scaffold outside mosaic core contracts; direct unit probes only.",
       "issues": [],
       "probe": "tests/test_main.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [],
+      "outside_contract": "Compatibility scaffold; neither a CF-1 to CF-6 input nor an interchange API.",
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md"
+      ],
+      "probe_name": "test_greet"
     },
     {
       "source": "src/manager_mosaic/__init__.py:add",
@@ -370,7 +742,13 @@
       "rule": "Compatibility scaffold outside mosaic core contracts; direct unit probes only.",
       "issues": [],
       "probe": "tests/test_main.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [],
+      "outside_contract": "Compatibility scaffold; neither a CF-1 to CF-6 input nor an interchange API.",
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md"
+      ],
+      "probe_name": "test_add"
     },
     {
       "source": "src/manager_mosaic/model.py:validate_payload",
@@ -380,7 +758,88 @@
         96
       ],
       "probe": "tests/test_model_validation.py",
-      "owner": "Manager-Mosaic"
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-1"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/schemas/mosaic-store-v1.schema.json"
+      ],
+      "probe_name": "test_mistyped_entry_period_reference_is_reported",
+      "availability": "planned"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:FactKeyViolation.kind",
+      "classification": "already-correct",
+      "rule": "Read-only unregistered_fact_key diagnostic discriminator (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_validate_fact_keys_reports_identity_for_generic_records"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:UnregisteredFactKeyError.__init__",
+      "classification": "already-correct",
+      "rule": "Strict-mode exception preserves all identity-qualified violations (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_violations"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:ValidationViolation",
+      "classification": "already-correct",
+      "rule": "Public compatibility alias of FactKeyViolation, not a second validator.",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3",
+        "CF-4",
+        "CF-7"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "src/manager_mosaic/fact_key_registry.json"
+      ],
+      "probe_name": "test_validate_fact_keys_reports_identity_for_generic_records"
+    },
+    {
+      "source": "scripts/validate_run_contract.py:main",
+      "classification": "already-correct",
+      "rule": "CF-6 dispatch checks declared consumer ingests and returns nonzero for invalid evidence fixtures. Other interchange forms are conditional on registry adoption or explicit CLI flags.",
+      "issues": [],
+      "probe": "tests/test_backplane_fixtures.py",
+      "owner": "Workflows",
+      "core_functions": [
+        "CF-6"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md",
+        "docs/contracts/document-identity-conventions.md",
+        "docs/contracts/tracked-variable-v1.md"
+      ],
+      "probe_name": "test_consumer_cli_validates_evidence_fixture"
     }
   ],
   "resources": {
