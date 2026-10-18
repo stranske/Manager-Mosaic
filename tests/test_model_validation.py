@@ -379,6 +379,33 @@ def test_discrepancy_accessors_retain_exact_duplicate_fact_provenance() -> None:
     )
 
 
+def test_discrepancy_provenance_stays_tied_to_each_fact_under_reversed_input() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", "inferred")
+    forward = detect_numeric_discrepancies([observed, inferred])[0]
+    reversed_result = detect_numeric_discrepancies([inferred, observed])[0]
+    # Reversing input order reverses the contributing order, but each basis
+    # must stay tied to its own value/evidence association, never re-paired.
+    assert forward.value_bases == (
+        (8.0, "shared", "observed"),
+        (12.0, "shared", "inferred"),
+    )
+    assert reversed_result.contributing_facts == (inferred, observed)
+    assert reversed_result.values == (12.0, 8.0)
+    assert reversed_result.evidence_ids == ("shared", "shared")
+    assert reversed_result.bases == ("inferred", "observed")
+    assert reversed_result.evidence_bases == (
+        ("shared", "inferred"),
+        ("shared", "observed"),
+    )
+    assert reversed_result.value_bases == (
+        (12.0, "shared", "inferred"),
+        (8.0, "shared", "observed"),
+    )
+
+
 def test_thesis_accessors_retain_exact_duplicate_fact_provenance() -> None:
     from manager_mosaic.thesis import ThesisClaim, evaluate_claim
 

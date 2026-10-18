@@ -344,3 +344,23 @@ Observed this session:
   `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made it
   pass (exit 0). See
   [model-provenance-distinct-evidence-alias-break.txt](model-provenance-distinct-evidence-alias-break.txt).
+
+## Discrepancy provenance under reversed input order (follow-up)
+
+New regression `test_discrepancy_provenance_stays_tied_to_each_fact_under_reversed_input`
+in `tests/test_model_validation.py` covers a combination not previously asserted
+directly for discrepancies: reversing the input order of a mixed
+observed/inferred pair sharing one evidence ID reverses `contributing_facts`,
+`values`, `bases`, and `evidence_bases`, while each basis stays tied to its own
+value/evidence association in `value_bases` rather than being re-paired.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — **80 passed** (single-file coverage below the repo-wide gate, as before).
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py -q --no-cov -m "not slow"` — **117 passed**, exit 0.
+- `python -m pytest -q -m "not slow"` — **242 passed**, exit 0, coverage 97.70%.
+- `BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — passed, **102 files unchanged**, exit 0.
+- Deliberate break: sorting `DiscrepancyRecord.value_bases` tuples in
+  `src/manager_mosaic/discrepancy.py` made the new regression fail (1 failed);
+  restoring that file byte-for-byte with `git checkout` made it pass again.
+  See [model-provenance-discrepancy-reversed-break.txt](model-provenance-discrepancy-reversed-break.txt).
