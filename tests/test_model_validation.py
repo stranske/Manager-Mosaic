@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+from typing import Any
 
+import pytest
 from jsonschema import Draft202012Validator
 
 from manager_mosaic.model import (
@@ -236,3 +238,65 @@ def test_builders_create_expected_entry() -> None:
         ],
     )
     assert item.mentions[0].inferred is False
+
+
+@pytest.mark.parametrize(
+    "basis, second_basis",
+    [
+        ("observed", "observed"),
+        ("inferred", "inferred"),
+        ("observed", "inferred"),
+        ("unknown", "inferred"),
+    ],
+)
+def test_fact_provenance_survives_latest_thesis_and_discrepancy(
+    basis: Any, second_basis: Any
+) -> None:
+    from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    old = FactRecord("performance.irr", "fund:a", "2024Q4", 99.0, "old", "observed")
+    first = FactRecord("performance.irr", "fund:a", "2025Q1", 8.0, "repeated", basis)
+    second = FactRecord("performance.irr", "fund:a", "Q1 2025", 12.0, "repeated", second_basis)
+    facts = [old, first, second]
+    result = evaluate_claim(
+        ThesisClaim("c", "IRR", "fund:a", "performance.irr", "min", 10.0), facts
+    )
+    assert result.verdict == "at_risk"
+    assert result.evidence_ids == ("repeated",)  # Legacy API keeps its original deduplication.
+    assert result.contributing_facts == (first, second)
+    assert [(f.evidence_id, f.value, f.basis) for f in result.contributing_facts] == [
+        ("repeated", 8.0, basis),
+        ("repeated", 12.0, second_basis),
+    ]
+    discrepancy = detect_numeric_discrepancies(facts)[0]
+    assert discrepancy.contributing_facts == (first, second)
+    assert [(f.value, f.basis) for f in discrepancy.contributing_facts] == [
+        (8.0, basis),
+        (12.0, second_basis),
+    ]
+
+
+def test_fact_provenance_legacy_constructor_defaults_to_unknown() -> None:
+    from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    first = FactRecord("metric", "entity", "2025Q1", 1.0, "a")
+    second = FactRecord("metric", "entity", "2025Q1", 2.0, "b")
+    assert first.basis == "unknown"
+    assert {
+        f.basis for f in detect_numeric_discrepancies([first, second])[0].contributing_facts
+    } == {"unknown"}
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "max", 5.0)
+    result = evaluate_claim(claim, [first, second])
+    assert result.verdict == "supported"
+    assert all(f.basis == "unknown" for f in result.contributing_facts)
+    assert evaluate_claim(claim, []).contributing_facts == ()
+
+
+@pytest.mark.parametrize("basis", [None, "parser", "manual", "false", True, [], {}])
+def test_fact_provenance_rejects_unsupported_basis(basis: Any) -> None:
+    from manager_mosaic.discrepancy import FactRecord
+
+    with pytest.raises(ValueError, match="unsupported fact basis"):
+        FactRecord("metric", "entity", "2025Q1", 1.0, "evidence", basis)

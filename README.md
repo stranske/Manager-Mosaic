@@ -29,3 +29,12 @@ Synthetic and public inputs only in this repository; no proprietary manager mate
 ## Interoperability
 
 Field names come from the tool already in use rather than being invented here, and the store aligns with the fleet contracts in `docs/contracts/` (run records, artifact manifests, evidence objects, identity conventions).
+
+### Fact provenance in local results
+
+Pass an explicit `basis` to FactRecord when its source supports observed/inferred
+classification; legacy facts remain unknown. Discrepancy and thesis outputs keep
+all contributing fact/value/evidence/basis associations, including mixed bases and
+repeated evidence IDs, without changing evaluation policy. The product contract
+documents this caller boundary. Verify offline with `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q`; no extraction/hosting layer or
+method-to-basis inference is introduced.

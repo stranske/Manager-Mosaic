@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 from manager_mosaic.discrepancy import FactRecord
@@ -43,6 +43,7 @@ class ThesisCheck:
     claim_id: str
     verdict: ThesisVerdict
     evidence_ids: tuple[str, ...]
+    contributing_facts: tuple[FactRecord, ...] = field(default=(), compare=False)
 
 
 def evaluate_claim(
@@ -104,4 +105,17 @@ def evaluate_claim(
         claim_id=claim.claim_id,
         verdict=verdict,
         evidence_ids=tuple(sorted({fact.evidence_id for fact in latest_facts})),
+        contributing_facts=tuple(
+            sorted(
+                latest_facts,
+                key=lambda fact: (
+                    fact.fact_key,
+                    fact.entity_ref,
+                    fact.period,
+                    fact.value,
+                    fact.evidence_id,
+                    fact.basis,
+                ),
+            )
+        ),
     )

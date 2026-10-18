@@ -13,6 +13,7 @@ from manager_mosaic.fact_keys import UnregisteredFactKeyError, validate_fact_key
 from manager_mosaic.periods import period_chronology_key
 
 PeriodGroupKey = tuple[Literal["quarter"], int, int] | tuple[Literal["raw"], str]
+FactBasis = Literal["observed", "inferred", "unknown"]
 
 
 @dataclass(frozen=True)
@@ -22,8 +23,11 @@ class FactRecord:
     period: str
     value: float
     evidence_id: str
+    basis: FactBasis = "unknown"
 
     def __post_init__(self) -> None:
+        if self.basis not in ("observed", "inferred", "unknown"):
+            raise ValueError(f"unsupported fact basis: {self.basis!r}")
         if not math.isfinite(self.value):
             raise ValueError(f"fact value must be finite, got {self.value!r}")
 
@@ -37,6 +41,7 @@ class DiscrepancyRecord:
     values: tuple[float, ...]
     evidence_ids: tuple[str, ...]
     kind: Literal["numeric_delta"]
+    contributing_facts: tuple[FactRecord, ...] = ()
 
 
 def _discrepancy_id(fact_key: str, entity_ref: str, period: str) -> str:
@@ -125,6 +130,7 @@ def detect_numeric_discrepancies(
                 values=values,
                 evidence_ids=evidence_ids,
                 kind="numeric_delta",
+                contributing_facts=tuple(group),
             )
         )
     return discrepancies
