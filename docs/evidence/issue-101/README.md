@@ -364,3 +364,25 @@ Observed this session:
   `src/manager_mosaic/discrepancy.py` made the new regression fail (1 failed);
   restoring that file byte-for-byte with `git checkout` made it pass again.
   See [model-provenance-discrepancy-reversed-break.txt](model-provenance-discrepancy-reversed-break.txt).
+
+## Provenance isolation across non-matching facts and discrepancy groups (follow-up)
+
+New regressions `test_thesis_provenance_does_not_leak_from_nonmatching_facts` and
+`test_discrepancy_provenance_is_isolated_per_group` in
+`tests/test_model_validation.py` cover combinations not previously asserted
+directly: a thesis check exposes only its matching latest-period fact's basis
+(non-matching entity/key facts, including a later-period one, leak nothing), and
+interleaved discrepancy groups each retain only their own bases — mixed
+observed/inferred for one entity, legacy unknown for another — while a
+within-threshold mixed pair produces no discrepancy.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q --no-cov -p no:cacheprovider -m "not slow"` — **82 passed**, exit 0.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py -q --no-cov -p no:cacheprovider -m "not slow"` — **119 passed**, exit 0.
+- `python -m pytest -q -p no:cacheprovider -m "not slow"` — **244 passed**, exit 0, coverage 97.70%.
+- `BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — passed, **102 files unchanged**, exit 0.
+- Deliberate break: forcing every basis to `unknown` in
+  `src/manager_mosaic/model.py` made both new regressions fail (2 failed);
+  restoring that file byte-for-byte with `git checkout` made them pass again.
+  See [model-provenance-group-isolation-break.txt](model-provenance-group-isolation-break.txt).

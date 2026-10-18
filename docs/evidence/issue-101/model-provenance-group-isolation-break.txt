@@ -1,0 +1,16 @@
+Deliberate-break gate for test_thesis_provenance_does_not_leak_from_nonmatching_facts
+and test_discrepancy_provenance_is_isolated_per_group
+Scope change under test: FactRecord.basis in src/manager_mosaic/model.py preserves a
+caller-supplied basis (default "unknown"); thesis/discrepancy results expose it only
+for their own matching/grouped contributing facts.
+
+Break applied (temporary, not committed): FactRecord.__post_init__ forced every
+basis to "unknown", erasing the caller's explicit basis in src/manager_mosaic/model.py.
+Command: python -m pytest tests/test_model_validation.py::test_thesis_provenance_does_not_leak_from_nonmatching_facts tests/test_model_validation.py::test_discrepancy_provenance_is_isolated_per_group -q --no-cov -p no:cacheprovider
+Result under break: 2 failed (explicit inferred/observed bases reported as unknown).
+
+Restore: git checkout -- src/manager_mosaic/model.py (byte-for-byte restore).
+Command after restore: python -m pytest tests/test_model_validation.py -q --no-cov -p no:cacheprovider -m "not slow"
+Result after restore: 82 passed.
+Focused suite: python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py -q --no-cov -p no:cacheprovider -m "not slow" -> 119 passed.
+Full suite: python -m pytest -q -p no:cacheprovider -m "not slow" -> 244 passed, coverage 97.70%.

@@ -762,6 +762,49 @@ def test_fact_provenance_replace_revalidates_and_carries_basis() -> None:
         replace(legacy, basis="extracted")  # type: ignore[arg-type]
 
 
+def test_thesis_provenance_does_not_leak_from_nonmatching_facts() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    matching = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-match", basis="inferred")
+    # Same-period facts for another entity / another key, and a later-period
+    # fact for another entity, must not leak basis or shift latest selection.
+    other_entity = FactRecord("metric", "other", "2025Q2", 99.0, "ev-other", basis="observed")
+    other_key = FactRecord("other", "entity", "2025Q1", 99.0, "ev-key", basis="observed")
+    check = evaluate_claim(claim, [other_entity, other_key, matching])
+    assert check.verdict == "contradicted"
+    assert check.evidence_ids == ("ev-match",)
+    assert check.contributing_facts == (matching,)
+    assert check.bases == ("inferred",)
+    assert check.evidence_bases == (("ev-match", "inferred"),)
+    assert check.value_bases == ((8.0, "ev-match", "inferred"),)
+
+
+def test_discrepancy_provenance_is_isolated_per_group() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+
+    a_observed = FactRecord("metric", "entity:a", "2025Q1", 8.0, "shared", basis="observed")
+    a_inferred = FactRecord("metric", "entity:a", "2025Q1", 12.0, "shared", basis="inferred")
+    b_legacy_a = FactRecord("metric", "entity:b", "2025Q1", 1.0, "shared")
+    b_legacy_b = FactRecord("metric", "entity:b", "2025Q1", 2.0, "shared")
+    # A within-threshold mixed pair forms no group and must not appear at all.
+    calm_a = FactRecord("metric", "entity:c", "2025Q1", 100.0, "ev-calm", basis="observed")
+    calm_b = FactRecord("metric", "entity:c", "2025Q1", 101.0, "ev-calm", basis="inferred")
+    discrepancies = detect_numeric_discrepancies(
+        [b_legacy_b, a_inferred, calm_a, b_legacy_a, a_observed, calm_b]
+    )
+    assert [d.entity_ref for d in discrepancies] == ["entity:a", "entity:b"]
+    first, second = discrepancies
+    assert first.contributing_facts == (a_inferred, a_observed)
+    assert first.bases == ("inferred", "observed")
+    assert first.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    assert first.value_bases == ((12.0, "shared", "inferred"), (8.0, "shared", "observed"))
+    assert second.contributing_facts == (b_legacy_b, b_legacy_a)
+    assert second.bases == ("unknown", "unknown")
+    assert second.evidence_bases == (("shared", "unknown"), ("shared", "unknown"))
+    assert second.value_bases == ((2.0, "shared", "unknown"), (1.0, "shared", "unknown"))
+
+
 def _typed_mention(**changes: Any) -> Store:
     """Exercise the retained typed API independently of raw-payload admission."""
     store = _load("minimal_store.json")
