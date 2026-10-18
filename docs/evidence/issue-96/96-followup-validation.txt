@@ -1,0 +1,128 @@
+Mutation: Disconnect structural diagnostics
+Command: ['/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', 'pytest', 'tests/test_model_validation.py', '-o', 'addopts=', '-m', 'not slow', '-k', 'test_payload_collects_structural_and_independent_semantic_defects or test_payload_missing_inferred_is_aggregated_before_construction', '--tb=short']
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 37 items / 35 deselected / 2 selected
+
+tests/test_model_validation.py FF                                        [100%]
+
+=================================== FAILURES ===================================
+______ test_payload_collects_structural_and_independent_semantic_defects _______
+tests/test_model_validation.py:275: in test_payload_collects_structural_and_independent_semantic_defects
+    assert {
+E   AssertionError: assert {'$.entries[0...[0].src', ...} <= {'$.entries[0...s[0].pub.src'}
+E     
+E     Extra items in the left set:
+E     '$.entries[0].mentions[0].size'
+E     '$.periods[0].label'
+E     '$.entries[0].mentions[0].inferred'
+E     '$.entries[0].mentions[0].src'
+E     '$.entries[0].id'
+_______ test_payload_missing_inferred_is_aggregated_before_construction ________
+tests/test_model_validation.py:302: in test_payload_missing_inferred_is_aggregated_before_construction
+    assert any(v.record_id.endswith(".inferred") for v in validate_payload(payload))
+E   assert False
+E    +  where False = any(<generator object test_payload_missing_inferred_is_aggregated_before_construction.<locals>.<genexpr> at 0x7f807baffa00>)
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_payload_collects_structural_and_independent_semantic_defects - AssertionError: assert {'$.entries[0...[0].src', ...} <= {'$.entries[0...s[0].pub.src'}
+  
+  Extra items in the left set:
+  '$.entries[0].mentions[0].size'
+  '$.periods[0].label'
+  '$.entries[0].mentions[0].inferred'
+  '$.entries[0].mentions[0].src'
+  '$.entries[0].id'
+FAILED tests/test_model_validation.py::test_payload_missing_inferred_is_aggregated_before_construction - assert False
+ +  where False = any(<generator object test_payload_missing_inferred_is_aggregated_before_construction.<locals>.<genexpr> at 0x7f807baffa00>)
+======================= 2 failed, 35 deselected in 0.10s =======================
+
+Exit code: 1
+
+Mutation: Disconnect constructor admission guard
+Command: ['/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', 'pytest', 'tests/test_model_validation.py', '-o', 'addopts=', '-m', 'not slow', '-k', 'test_payload_validates_all_entries_before_constructing_any', '--tb=short']
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 37 items / 35 deselected / 2 selected
+
+tests/test_model_validation.py FF                                        [100%]
+
+=================================== FAILURES ===================================
+________ test_payload_validates_all_entries_before_constructing_any[id] ________
+tests/test_model_validation.py:324: in test_payload_validates_all_entries_before_constructing_any
+    Store.from_dict(payload)
+src/manager_mosaic/model.py:137: in from_dict
+    entries=tuple(_entry_from_dict(item) for item in payload.get("entries", [])),
+            ^^^^^
+src/manager_mosaic/model.py:137: in <genexpr>
+    entries=tuple(_entry_from_dict(item) for item in payload.get("entries", [])),
+                  ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_model_validation.py:319: in unexpected_construction
+    pytest.fail("Entry construction started before the entire payload was validated")
+E   Failed: Entry construction started before the entire payload was validated
+_______ test_payload_validates_all_entries_before_constructing_any[pub] ________
+tests/test_model_validation.py:324: in test_payload_validates_all_entries_before_constructing_any
+    Store.from_dict(payload)
+src/manager_mosaic/model.py:137: in from_dict
+    entries=tuple(_entry_from_dict(item) for item in payload.get("entries", [])),
+            ^^^^^
+src/manager_mosaic/model.py:137: in <genexpr>
+    entries=tuple(_entry_from_dict(item) for item in payload.get("entries", [])),
+                  ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_model_validation.py:319: in unexpected_construction
+    pytest.fail("Entry construction started before the entire payload was validated")
+E   Failed: Entry construction started before the entire payload was validated
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_payload_validates_all_entries_before_constructing_any[id] - Failed: Entry construction started before the entire payload was validated
+FAILED tests/test_model_validation.py::test_payload_validates_all_entries_before_constructing_any[pub] - Failed: Entry construction started before the entire payload was validated
+======================= 2 failed, 35 deselected in 0.12s =======================
+
+Exit code: 1
+
+Mutation: Disconnect currency type guard
+Command: ['/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', 'pytest', 'tests/test_model_validation.py', '-o', 'addopts=', '-m', 'not slow', '-k', 'test_payload_currency_type_damage_preserves_independent_period_error', '--tb=short']
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 37 items / 32 deselected / 5 selected
+
+tests/test_model_validation.py F....                                     [100%]
+
+=================================== FAILURES ===================================
+___ test_payload_currency_type_damage_preserves_independent_period_error[36] ___
+tests/test_model_validation.py:352: in test_payload_currency_type_damage_preserves_independent_period_error
+    assert [(v.record_id, v.message) for v in validate(broken)] == [
+                                              ^^^^^^^^^^^^^^^^
+src/manager_mosaic/model.py:413: in validate
+    _check_truncated_currency(violations, entry_item.id, "flag", entry_item.flag)
+src/manager_mosaic/model.py:335: in _check_truncated_currency
+    if value and _TRUNCATED_CURRENCY.match(value.strip()):
+                                           ^^^^^^^^^^^
+E   AttributeError: 'int' object has no attribute 'strip'
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_payload_currency_type_damage_preserves_independent_period_error[36] - AttributeError: 'int' object has no attribute 'strip'
+================== 1 failed, 4 passed, 32 deselected in 0.11s ==================
+
+Exit code: 1
+
+Byte-identical source restoration verified
+Command: ['/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', 'pytest', 'tests/test_model_validation.py', '-o', 'addopts=', '-m', 'not slow']
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 37 items
+
+tests/test_model_validation.py .....................................     [100%]
+
+============================== 37 passed in 0.10s ==============================
+
+Exit code: 0

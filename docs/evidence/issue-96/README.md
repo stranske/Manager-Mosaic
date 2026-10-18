@@ -1,6 +1,24 @@
 # Raw store validation evidence
 
-The original 129 tests reproduce the recorded 91.50% coverage. With 23 additional raw-validation regressions, all 152 tests pass with 97.21% coverage, above the unchanged 80% gate. Targeted coverage of `manager_mosaic.model` is 96.47% (53 tests). The original 30 model tests and both schema copies remain byte-identical to the implementation baseline.
+Follow-up verification adds seven regression cases for validating every entry before
+construction and preserving unknown-period diagnostics when currency fields have
+non-string values. All 159 tests pass at 97.34% coverage. The required payload
+selection passes all 20 cases. [Follow-up deliberate-break proof](96-followup-validation.txt)
+records expected failures after disconnecting structural diagnostics, constructor
+admission, and currency type checking individually, followed by byte-identical
+source restoration and all 37 model tests passing.
+
+All six implementation tasks and five acceptance criteria are verified. Updating
+PR #111's checkboxes was rejected because the GitHub tool requires approval while
+this run uses approval policy `never`; its reconciled body is prepared at
+`/tmp/manager-mosaic-pr-111-body.md` for application by an authorized operator.
+Committing the follow-up is also blocked: `.git` is read-only, and `git add`
+fails to create `.git/index.lock`. The changes remain in the working tree.
+The repository-wide Black gate, Ruff, source mypy and diff checks pass. Running
+mypy on the model test file also reports its pre-existing unannotated `bad_sort`
+loop variable at line 169; that unrelated code is unchanged.
+
+The previous iteration's original 129 tests reproduce the recorded 91.50% coverage. With 23 additional raw-validation regressions, all 152 tests passed with 97.21% coverage, above the unchanged 80% gate. Targeted coverage of `manager_mosaic.model` was 96.47% (53 tests). At that point, the original 30 model tests and both schema copies were byte-identical to the implementation baseline; this follow-up appends seven model cases without changing those existing tests or the schemas.
 
 Removing only the structural-violation collection from `validate_payload` makes both unchanged combined-defect and missing-inferred regressions fail. Byte-identical restoration returns all 30 model tests green. No malformed value is coerced; independent semantic checks run only when their prerequisite inputs have usable types. `Store.from_dict` rejects malformed structure with one aggregate `ValueError` and retains structurally valid semantic inspection through `validate(Store)`.
 

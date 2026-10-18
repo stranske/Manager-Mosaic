@@ -304,6 +304,56 @@ def test_payload_missing_inferred_is_aggregated_before_construction() -> None:
         Store.from_dict(payload)
 
 
+@pytest.mark.parametrize("missing_field", ["id", "pub"])
+def test_payload_validates_all_entries_before_constructing_any(
+    missing_field: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    damaged = dict(payload["entries"][0])
+    damaged["id"] = "second-entry"
+    damaged["first"] = "unknown-period"
+    del damaged[missing_field]
+    payload["entries"].append(damaged)
+
+    def unexpected_construction(item: Any) -> None:
+        pytest.fail("Entry construction started before the entire payload was validated")
+
+    monkeypatch.setattr("manager_mosaic.model._entry_from_dict", unexpected_construction)
+
+    with pytest.raises(ValueError) as error:
+        Store.from_dict(payload)
+
+    assert f"$.entries[1].{missing_field}: required field is missing" in str(error.value)
+    assert "$.entries[1].first: period 'unknown-period' referenced but not defined" in str(
+        error.value
+    )
+
+
+@pytest.mark.parametrize("value", [36, None, False, [], {}])
+def test_payload_currency_type_damage_preserves_independent_period_error(value: Any) -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    payload["entries"][0]["flag"] = value
+    payload["entries"][0]["mentions"][0]["size"] = value
+    payload["entries"][0]["first"] = "unknown-period"
+
+    violations = validate_payload(payload)
+    assert {v.record_id for v in violations} == {
+        "$.entries[0].flag",
+        "$.entries[0].mentions[0].size",
+        "$.entries[0].first",
+    }
+
+    # The typed API must also skip malformed currency values and finish its checks.
+    original = _typed_mention(size=value)
+    broken = replace(
+        original,
+        entries=(replace(original.entries[0], flag=value, first="unknown-period"),),
+    )
+    assert [(v.record_id, v.message) for v in validate(broken)] == [
+        ("alpha-fund", "period 'unknown-period' referenced but not defined")
+    ]
+
+
 @pytest.mark.parametrize("collection", [None, 23, "bad", [{"id": []}], [None]])
 def test_payload_wrong_collection_types_do_not_abort_other_checks(collection: Any) -> None:
     payload = json.loads((FIXTURES / "minimal_store.json").read_text())
