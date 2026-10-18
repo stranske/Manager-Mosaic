@@ -948,7 +948,7 @@
       ],
       "probe_name": "test_result_value_bases_retain_basis_to_value_evidence_association",
       "snapshot_scope": "branch-state",
-      "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
+      "implementation_commit": "9c91bdd00f8d554e6454b24aaeb4e12c2b10e559",
       "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     },
     {
@@ -969,7 +969,7 @@
       ],
       "probe_name": "test_result_value_bases_retain_basis_to_value_evidence_association",
       "snapshot_scope": "branch-state",
-      "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
+      "implementation_commit": "9c91bdd00f8d554e6454b24aaeb4e12c2b10e559",
       "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     }
   ],
