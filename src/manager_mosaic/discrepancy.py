@@ -38,6 +38,11 @@ class DiscrepancyRecord:
         """``(evidence_id, basis)`` per contributing fact, preserving repeats."""
         return tuple((fact.evidence_id, fact.basis) for fact in self.contributing_facts)
 
+    @property
+    def value_bases(self) -> tuple[tuple[float, str, FactBasis], ...]:
+        """``(value, evidence_id, basis)`` per contributing fact, preserving repeats."""
+        return tuple((fact.value, fact.evidence_id, fact.basis) for fact in self.contributing_facts)
+
 
 def _discrepancy_id(fact_key: str, entity_ref: str, period: PeriodGroupKey) -> str:
     """Return an injective ID for the canonical (fact_key, entity_ref, period) tuple."""

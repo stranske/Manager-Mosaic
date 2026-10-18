@@ -363,10 +363,12 @@ def test_fact_provenance_preserves_legacy_result_constructors() -> None:
     assert discrepancy.contributing_facts == ()
     assert discrepancy.bases == ()
     assert discrepancy.evidence_bases == ()
+    assert discrepancy.value_bases == ()
     check = ThesisCheck("c", "supported", ("a",))
     assert check.contributing_facts == ()
     assert check.bases == ()
     assert check.evidence_bases == ()
+    assert check.value_bases == ()
 
 
 def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> None:
@@ -413,6 +415,32 @@ def test_result_provenance_accessors_observed_only_and_discrepancy_legacy_unknow
     legacy = detect_numeric_discrepancies([legacy_a, legacy_b])[0]
     assert legacy.bases == ("unknown", "unknown")
     assert legacy.evidence_bases == (("shared", "unknown"), ("shared", "unknown"))
+
+
+def test_result_value_bases_retain_basis_to_value_evidence_association() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    # Equal values sharing one evidence ID differ only by basis; value_bases
+    # must keep each (value, evidence_id, basis) association, not deduplicate.
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    check = evaluate_claim(claim, [observed, inferred])
+    assert check.value_bases == ((8.0, "shared", "inferred"), (8.0, "shared", "observed"))
+
+    # Observed-only discrepancy: every competing fact keeps its observed basis.
+    other_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="observed")
+    discrepancy = detect_numeric_discrepancies([observed, other_observed])[0]
+    assert discrepancy.value_bases == (
+        (8.0, "shared", "observed"),
+        (12.0, "shared", "observed"),
+    )
+
+    # Mixed discrepancy retains each value with its own basis and evidence ID.
+    inferred_high = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="inferred")
+    mixed = detect_numeric_discrepancies([observed, inferred_high])[0]
+    assert mixed.value_bases == ((8.0, "shared", "observed"), (12.0, "shared", "inferred"))
 
 
 def test_result_provenance_accessors_keep_legacy_facts_unknown() -> None:

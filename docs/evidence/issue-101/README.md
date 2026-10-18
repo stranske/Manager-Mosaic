@@ -115,3 +115,39 @@ Observed this session:
   `('unknown',) == ('observed',)` (exit 1); restoring `model.py` byte-for-byte
   (`cmp` identical) made it pass (exit 0). Both outputs are in
   [model-provenance-observed-only-break.txt](model-provenance-observed-only-break.txt).
+
+## Value-associated provenance accessors (follow-up)
+
+`DiscrepancyRecord` and `ThesisCheck` now also expose `value_bases`: the
+`(value, evidence_id, basis)` association for each contributing fact, in
+contributing order and without deduplication. This keeps a basis tied to its
+value when values are equal or an evidence ID repeats, which
+`bases`/`evidence_bases` alone cannot show. Legacy result constructors leave
+it empty. The audit catalog and `contract-enforcement-audit.md` gained
+matching `value_bases` rows, as the repo hygiene gate requires.
+
+New regression
+`test_result_value_bases_retain_basis_to_value_evidence_association` in
+`tests/test_model_validation.py` covers an equal-value mixed-basis thesis
+result sharing one evidence ID, an observed-only discrepancy, and a mixed
+discrepancy; `test_fact_provenance_preserves_legacy_result_constructors` now
+also asserts `value_bases == ()` for both legacy constructors.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — collected 58 tests,
+  **58 passed**; the process exits 1 only on the whole-package coverage gate
+  (73.21% < 80% when a single test file runs against all of `src/`). The full
+  suite below meets that gate.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q -m 'not slow'`
+  — **95 passed**, exit 0.
+- `python -m pytest -q -m 'not slow'` — **220 passed**, exit 0, coverage 97.70%.
+- `BLACK_CACHE_DIR=/tmp/mm-black-cache BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .`
+  — passed, **102 files unchanged**, exit 0 (single-worker/cache env only
+  avoids the sandbox socket restriction on Black's process runner).
+- Deliberate break: forcing `basis` to `unknown` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `(8.0, 'shared', 'unknown') != (8.0, 'shared', 'inferred')` (exit 1);
+  restoring `model.py` byte-for-byte (`sha256sum -c` OK, `cmp` identical)
+  made it pass (exit 0). Both outputs are in
+  [model-provenance-value-bases-break.txt](model-provenance-value-bases-break.txt).

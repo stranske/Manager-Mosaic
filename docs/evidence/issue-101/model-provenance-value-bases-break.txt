@@ -1,0 +1,79 @@
+=== DELIBERATE BREAK: basis forced to unknown in src/manager_mosaic/model.py ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py F                                         [100%]
+
+=================================== FAILURES ===================================
+______ test_result_value_bases_retain_basis_to_value_evidence_association ______
+
+    def test_result_value_bases_retain_basis_to_value_evidence_association() -> None:
+        from manager_mosaic.discrepancy import detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+        # Equal values sharing one evidence ID differ only by basis; value_bases
+        # must keep each (value, evidence_id, basis) association, not deduplicate.
+        observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="observed")
+        inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+        check = evaluate_claim(claim, [observed, inferred])
+>       assert check.value_bases == ((8.0, "shared", "inferred"), (8.0, "shared", "observed"))
+E       AssertionError: assert ((8.0, 'share...', 'unknown')) == ((8.0, 'share..., 'observed'))
+E         
+E         At index 0 diff: (8.0, 'shared', 'unknown') != (8.0, 'shared', 'inferred')
+E         
+E         Full diff:
+E           (
+E               (
+E                   8.0,
+E                   'shared',
+E         -         'inferred',
+E         +         'unknown',
+E               ),
+E               (
+E                   8.0,
+E                   'shared',
+E         -         'observed',
+E         +         'unknown',
+E               ),
+E           )
+
+tests/test_model_validation.py:430: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_result_value_bases_retain_basis_to_value_evidence_association - AssertionError: assert ((8.0, 'share...', 'unknown')) == ((8.0, 'share..., 'observed'))
+  
+  At index 0 diff: (8.0, 'shared', 'unknown') != (8.0, 'shared', 'inferred')
+  
+  Full diff:
+    (
+        (
+            8.0,
+            'shared',
+  -         'inferred',
+  +         'unknown',
+        ),
+        (
+            8.0,
+            'shared',
+  -         'observed',
+  +         'unknown',
+        ),
+    )
+============================== 1 failed in 0.14s ===============================
+break_exit:1
+=== RESTORED: model.py byte-for-byte identical ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.09s ===============================
+restored_exit:0
