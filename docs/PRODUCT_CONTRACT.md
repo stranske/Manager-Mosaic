@@ -42,7 +42,9 @@ python3 -m pytest -q --no-cov tests/test_repo_hygiene.py::test_product_contract_
 ## Caller-supplied fact provenance
 
 Local `manager_mosaic.model.FactRecord(..., basis="observed" | "inferred" | "unknown")`
-preserves a caller's explicit basis. The existing import from
+preserves a caller's explicit basis. `manager_mosaic.model.FACT_BASES` (also
+exported as `manager_mosaic.FACT_BASES`) is the canonical supported-basis tuple
+that validation and its error message derive from. The existing import from
 `manager_mosaic.discrepancy` remains an alias of the same class. `observed` labels
 an observation supported directly by source evidence; `inferred` labels a derived
 assertion. `unknown` means the basis has not been established, not that a fact is
@@ -59,7 +61,10 @@ matching latest-period fact; mixed bases and repeated evidence IDs remain
 separate associations. Both result types also expose that provenance directly:
 `bases` returns the basis of each contributing fact in `contributing_facts`
 order, and `evidence_bases` returns the `(evidence_id, basis)` pair for each
-contributing fact without deduplicating repeated evidence IDs. Legacy result
+contributing fact without deduplicating repeated evidence IDs. `value_bases`
+returns the `(value, evidence_id, basis)` association for each contributing
+fact in the same order, so a basis stays tied to its value even when values
+are equal or an evidence ID repeats. Legacy result
 constructors leave both empty. `FactRecord` and `FactBasis` are also importable
 from the top-level `manager_mosaic` package, identical to the `model` classes. Legacy result constructors still accept their original arguments (the added tuple defaults empty). ThesisCheck equality retains its
 legacy claim/verdict/evidence-ID semantics; the supplemental contributing-fact

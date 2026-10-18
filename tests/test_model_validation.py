@@ -353,6 +353,123 @@ def test_fact_provenance_keeps_equal_values_and_duplicate_associations() -> None
     assert evaluate_claim(claim, facts[::-1]).contributing_facts == check.contributing_facts
 
 
+def test_discrepancy_accessors_retain_exact_duplicate_fact_provenance() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "inferred")
+    unknown = FactRecord("metric", "entity", "2025Q1", 12.0, "shared")
+    # The second `inferred` entry is an exact duplicate of the first: every
+    # accessor must retain it as its own association, not deduplicate it away.
+    facts = [observed, inferred, unknown, inferred]
+    discrepancy = detect_numeric_discrepancies(facts)[0]
+    assert discrepancy.contributing_facts == tuple(facts)
+    assert discrepancy.bases == ("observed", "inferred", "unknown", "inferred")
+    assert discrepancy.evidence_bases == (
+        ("shared", "observed"),
+        ("shared", "inferred"),
+        ("shared", "unknown"),
+        ("shared", "inferred"),
+    )
+    assert discrepancy.value_bases == (
+        (8.0, "shared", "observed"),
+        (8.0, "shared", "inferred"),
+        (12.0, "shared", "unknown"),
+        (8.0, "shared", "inferred"),
+    )
+
+
+def test_discrepancy_provenance_stays_tied_to_each_fact_under_reversed_input() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", "inferred")
+    forward = detect_numeric_discrepancies([observed, inferred])[0]
+    reversed_result = detect_numeric_discrepancies([inferred, observed])[0]
+    # Reversing input order reverses the contributing order, but each basis
+    # must stay tied to its own value/evidence association, never re-paired.
+    assert forward.value_bases == (
+        (8.0, "shared", "observed"),
+        (12.0, "shared", "inferred"),
+    )
+    assert reversed_result.contributing_facts == (inferred, observed)
+    assert reversed_result.values == (12.0, 8.0)
+    assert reversed_result.evidence_ids == ("shared", "shared")
+    assert reversed_result.bases == ("inferred", "observed")
+    assert reversed_result.evidence_bases == (
+        ("shared", "inferred"),
+        ("shared", "observed"),
+    )
+    assert reversed_result.value_bases == (
+        (12.0, "shared", "inferred"),
+        (8.0, "shared", "observed"),
+    )
+
+
+def test_thesis_accessors_retain_exact_duplicate_fact_provenance() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "inferred")
+    unknown = FactRecord("metric", "entity", "2025Q1", 12.0, "shared")
+    # The second `inferred` entry is an exact duplicate of the first: every
+    # thesis accessor must retain it as its own association, in the sorted
+    # contributing-facts order, not deduplicate it away.
+    facts = [observed, inferred, unknown, inferred]
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    check = evaluate_claim(claim, facts)
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("shared",)
+    assert check.bases == ("inferred", "inferred", "observed", "unknown")
+    assert check.evidence_bases == (
+        ("shared", "inferred"),
+        ("shared", "inferred"),
+        ("shared", "observed"),
+        ("shared", "unknown"),
+    )
+    assert check.value_bases == (
+        (8.0, "shared", "inferred"),
+        (8.0, "shared", "inferred"),
+        (8.0, "shared", "observed"),
+        (12.0, "shared", "unknown"),
+    )
+    reversed_check = evaluate_claim(claim, facts[::-1])
+    assert reversed_check.bases == check.bases
+    assert reversed_check.value_bases == check.value_bases
+
+
+def test_result_provenance_mixed_distinct_evidence_and_alias_periods() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    # Mixed latest facts with distinct evidence IDs: each basis must stay tied
+    # to its own value/evidence association, not merged by basis or value.
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+    observed = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-obs", basis="observed")
+    older = FactRecord("metric", "entity", "2024Q4", 1.0, "ev-old", basis="inferred")
+    check = evaluate_claim(claim, [older, observed, inferred])
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("ev-inf", "ev-obs")
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("ev-inf", "inferred"), ("ev-obs", "observed"))
+    assert check.value_bases == ((8.0, "ev-inf", "inferred"), (12.0, "ev-obs", "observed"))
+
+    # The same facts under quarter-alias period spellings form one discrepancy
+    # group; every accessor retains the distinct basis/evidence association.
+    alias_inferred = FactRecord("metric", "entity", "Q1 2025", 8.0, "ev-inf", basis="inferred")
+    discrepancies = detect_numeric_discrepancies([observed, alias_inferred])
+    assert len(discrepancies) == 1
+    discrepancy = discrepancies[0]
+    assert discrepancy.period == "2025Q1"
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("ev-obs", "observed"), ("ev-inf", "inferred"))
+    assert discrepancy.value_bases == (
+        (12.0, "ev-obs", "observed"),
+        (8.0, "ev-inf", "inferred"),
+    )
+
+
 def test_fact_provenance_preserves_legacy_result_constructors() -> None:
     from manager_mosaic.discrepancy import DiscrepancyRecord
     from manager_mosaic.thesis import ThesisCheck
@@ -363,10 +480,12 @@ def test_fact_provenance_preserves_legacy_result_constructors() -> None:
     assert discrepancy.contributing_facts == ()
     assert discrepancy.bases == ()
     assert discrepancy.evidence_bases == ()
+    assert discrepancy.value_bases == ()
     check = ThesisCheck("c", "supported", ("a",))
     assert check.contributing_facts == ()
     assert check.bases == ()
     assert check.evidence_bases == ()
+    assert check.value_bases == ()
 
 
 def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> None:
@@ -392,6 +511,86 @@ def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> N
     assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
 
 
+def test_result_provenance_accessors_observed_only_and_discrepancy_legacy_unknown() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-obs", basis="observed")
+    observed_only = evaluate_claim(claim, [observed])
+    assert observed_only.bases == ("observed",)
+    assert observed_only.evidence_bases == (("ev-obs", "observed"),)
+
+    inferred = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-inf", basis="inferred")
+    discrepancy = detect_numeric_discrepancies([observed, inferred])[0]
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("ev-obs", "observed"), ("ev-inf", "inferred"))
+
+    # Legacy discrepancy facts stay unknown, with repeated evidence IDs retained.
+    legacy_a = FactRecord("metric", "entity", "2025Q1", 1.0, "shared")
+    legacy_b = FactRecord("metric", "entity", "2025Q1", 2.0, "shared")
+    legacy = detect_numeric_discrepancies([legacy_a, legacy_b])[0]
+    assert legacy.bases == ("unknown", "unknown")
+    assert legacy.evidence_bases == (("shared", "unknown"), ("shared", "unknown"))
+
+
+def test_result_value_bases_retain_basis_to_value_evidence_association() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    # Equal values sharing one evidence ID differ only by basis; value_bases
+    # must keep each (value, evidence_id, basis) association, not deduplicate.
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    check = evaluate_claim(claim, [observed, inferred])
+    assert check.value_bases == ((8.0, "shared", "inferred"), (8.0, "shared", "observed"))
+
+    # Observed-only discrepancy: every competing fact keeps its observed basis.
+    other_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="observed")
+    discrepancy = detect_numeric_discrepancies([observed, other_observed])[0]
+    assert discrepancy.value_bases == (
+        (8.0, "shared", "observed"),
+        (12.0, "shared", "observed"),
+    )
+
+    # Mixed discrepancy retains each value with its own basis and evidence ID.
+    inferred_high = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="inferred")
+    mixed = detect_numeric_discrepancies([observed, inferred_high])[0]
+    assert mixed.value_bases == ((8.0, "shared", "observed"), (12.0, "shared", "inferred"))
+
+
+def test_result_value_bases_inferred_only_discrepancy_and_legacy_results() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    # Inferred-only discrepancy: every competing fact keeps its inferred basis
+    # tied to its value and evidence ID.
+    inferred_a = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    inferred_b = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="inferred")
+    inferred_discrepancy = detect_numeric_discrepancies([inferred_a, inferred_b])[0]
+    assert inferred_discrepancy.bases == ("inferred", "inferred")
+    assert inferred_discrepancy.evidence_bases == (("shared", "inferred"), ("shared", "inferred"))
+    assert inferred_discrepancy.value_bases == (
+        (8.0, "shared", "inferred"),
+        (12.0, "shared", "inferred"),
+    )
+
+    # Legacy thesis fact stays unknown in the value-associated accessor too.
+    legacy = FactRecord("metric", "entity", "2025Q1", 8.0, "ev")
+    check = evaluate_claim(ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0), [legacy])
+    assert check.value_bases == ((8.0, "ev", "unknown"),)
+
+    # Legacy discrepancy facts stay unknown, with repeated evidence IDs retained.
+    legacy_a = FactRecord("metric", "entity", "2025Q1", 1.0, "shared")
+    legacy_b = FactRecord("metric", "entity", "2025Q1", 2.0, "shared")
+    legacy_discrepancy = detect_numeric_discrepancies([legacy_a, legacy_b])[0]
+    assert legacy_discrepancy.value_bases == (
+        (1.0, "shared", "unknown"),
+        (2.0, "shared", "unknown"),
+    )
+
+
 def test_result_provenance_accessors_keep_legacy_facts_unknown() -> None:
     from manager_mosaic.thesis import ThesisClaim, evaluate_claim
 
@@ -399,6 +598,92 @@ def test_result_provenance_accessors_keep_legacy_facts_unknown() -> None:
     check = evaluate_claim(ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0), [legacy])
     assert check.bases == ("unknown",)
     assert check.evidence_bases == (("ev", "unknown"),)
+
+
+def test_result_provenance_accessors_on_directly_constructed_results() -> None:
+    from manager_mosaic.discrepancy import DiscrepancyRecord
+    from manager_mosaic.thesis import ThesisCheck
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    discrepancy = DiscrepancyRecord(
+        "d",
+        "metric",
+        "entity",
+        "2025Q1",
+        (8.0, 8.0),
+        ("shared", "shared"),
+        "numeric_delta",
+        contributing_facts=(observed, inferred),
+    )
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
+    assert discrepancy.value_bases == ((8.0, "shared", "observed"), (8.0, "shared", "inferred"))
+
+    check = ThesisCheck("c", "at_risk", ("shared",), contributing_facts=(inferred, observed))
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    assert check.value_bases == ((8.0, "shared", "inferred"), (8.0, "shared", "observed"))
+
+
+def test_thesis_provenance_accessors_empty_for_insufficient_evidence() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    check = evaluate_claim(claim, [])
+    assert check.verdict == "insufficient_evidence"
+    assert check.bases == ()
+    assert check.evidence_bases == ()
+    assert check.value_bases == ()
+
+
+@pytest.mark.parametrize("basis", ["OBSERVED", "Observed", "", " inferred", "unknown "])
+def test_fact_provenance_rejects_case_and_whitespace_variants(basis: Any) -> None:
+    with pytest.raises(ValueError, match="unsupported fact basis.*expected one of"):
+        FactRecord("metric", "entity", "2025Q1", 1.0, "evidence", basis)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("basis", [1, 1.5, b"observed", ("observed",), ["observed"]])
+def test_fact_provenance_rejects_nonstring_basis_values(basis: Any) -> None:
+    # Basis is a closed string vocabulary: truthy non-strings that merely look
+    # like a basis (bytes, a one-tuple/list wrapping one) must not be coerced
+    # or accepted, on either the canonical or the legacy import path.
+    from manager_mosaic.discrepancy import FactRecord as LegacyFactRecord
+
+    for constructor in (FactRecord, LegacyFactRecord):
+        with pytest.raises(
+            ValueError, match="unsupported fact basis.*'observed', 'inferred', 'unknown'"
+        ):
+            constructor("metric", "entity", "2025Q1", 1.0, "evidence", basis)
+
+
+def test_fact_bases_constant_is_the_validation_source() -> None:
+    from manager_mosaic.model import FACT_BASES
+
+    assert FACT_BASES == ("observed", "inferred", "unknown")
+    assert manager_mosaic.FACT_BASES is FACT_BASES
+    assert "FACT_BASES" in manager_mosaic.__all__
+    for basis in FACT_BASES:
+        assert FactRecord("m", "e", "2025Q1", 1.0, "ev", basis=basis).basis == basis
+    with pytest.raises(
+        ValueError, match="unsupported fact basis.*'observed', 'inferred', 'unknown'"
+    ):
+        FactRecord("m", "e", "2025Q1", 1.0, "ev", basis="extracted")  # type: ignore[arg-type]
+
+
+def test_thesis_provenance_accessors_only_include_latest_period_facts() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    older_observed = FactRecord("metric", "entity", "2024Q4", 1.0, "old", basis="observed")
+    latest_inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    latest_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="observed")
+    check = evaluate_claim(claim, [older_observed, latest_observed, latest_inferred])
+    assert check.verdict == "at_risk"
+    # The older observed fact is superseded: no basis leaks in from 2024Q4.
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    assert check.value_bases == ((8.0, "shared", "inferred"), (12.0, "shared", "observed"))
 
 
 def test_top_level_fact_provenance_exports_match_model() -> None:
@@ -415,6 +700,148 @@ def test_top_level_fact_provenance_exports_match_model() -> None:
     )
     with pytest.raises(ValueError, match="unsupported fact basis"):
         manager_mosaic.FactRecord("m", "e", "2025Q1", 1.0, "ev", basis="extracted")  # type: ignore[arg-type]
+
+
+def test_result_provenance_accessors_treat_explicit_unknown_as_unset() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    # An explicit basis="unknown" is a supported basis, not an observation: it
+    # must expose the same unknown provenance as a legacy omitted basis.
+    explicit = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="unknown")
+    legacy = FactRecord("metric", "entity", "2025Q1", 8.0, "shared")
+    assert explicit.basis == legacy.basis == "unknown"
+    explicit_check = evaluate_claim(claim, [explicit])
+    legacy_check = evaluate_claim(claim, [legacy])
+    assert explicit_check.bases == legacy_check.bases == ("unknown",)
+    assert explicit_check.evidence_bases == legacy_check.evidence_bases == (("shared", "unknown"),)
+    assert explicit_check.value_bases == legacy_check.value_bases == ((8.0, "shared", "unknown"),)
+
+    # Explicit unknown stays unknown beside an inferred fact, with the repeated
+    # evidence ID retained once per contributing fact in both result types.
+    inferred = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="inferred")
+    mixed_check = evaluate_claim(claim, [inferred, explicit])
+    assert mixed_check.bases == ("unknown", "inferred")
+    assert mixed_check.value_bases == (
+        (8.0, "shared", "unknown"),
+        (12.0, "shared", "inferred"),
+    )
+    discrepancy = detect_numeric_discrepancies([explicit, inferred])[0]
+    assert discrepancy.bases == ("unknown", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "unknown"), ("shared", "inferred"))
+    assert discrepancy.value_bases == (
+        (8.0, "shared", "unknown"),
+        (12.0, "shared", "inferred"),
+    )
+
+
+def test_thesis_value_bases_observed_only_and_inferred_only() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-obs", basis="observed")
+    observed_check = evaluate_claim(claim, [observed])
+    assert observed_check.value_bases == ((8.0, "ev-obs", "observed"),)
+
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+    inferred_check = evaluate_claim(claim, [inferred])
+    assert inferred_check.value_bases == ((8.0, "ev-inf", "inferred"),)
+
+
+def test_fact_provenance_replace_revalidates_and_carries_basis() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    legacy = FactRecord("metric", "entity", "2025Q1", 8.0, "ev")
+    inferred = replace(legacy, basis="inferred")
+    assert inferred.basis == "inferred"
+    assert legacy.basis == "unknown"
+    check = evaluate_claim(ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0), [inferred])
+    assert check.value_bases == ((8.0, "ev", "inferred"),)
+    with pytest.raises(ValueError, match="unsupported fact basis"):
+        replace(legacy, basis="extracted")  # type: ignore[arg-type]
+
+
+def test_thesis_provenance_does_not_leak_from_nonmatching_facts() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    matching = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-match", basis="inferred")
+    # Same-period facts for another entity / another key, and a later-period
+    # fact for another entity, must not leak basis or shift latest selection.
+    other_entity = FactRecord("metric", "other", "2025Q2", 99.0, "ev-other", basis="observed")
+    other_key = FactRecord("other", "entity", "2025Q1", 99.0, "ev-key", basis="observed")
+    check = evaluate_claim(claim, [other_entity, other_key, matching])
+    assert check.verdict == "contradicted"
+    assert check.evidence_ids == ("ev-match",)
+    assert check.contributing_facts == (matching,)
+    assert check.bases == ("inferred",)
+    assert check.evidence_bases == (("ev-match", "inferred"),)
+    assert check.value_bases == ((8.0, "ev-match", "inferred"),)
+
+
+def test_discrepancy_provenance_is_isolated_per_group() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+
+    a_observed = FactRecord("metric", "entity:a", "2025Q1", 8.0, "shared", basis="observed")
+    a_inferred = FactRecord("metric", "entity:a", "2025Q1", 12.0, "shared", basis="inferred")
+    b_legacy_a = FactRecord("metric", "entity:b", "2025Q1", 1.0, "shared")
+    b_legacy_b = FactRecord("metric", "entity:b", "2025Q1", 2.0, "shared")
+    # A within-threshold mixed pair forms no group and must not appear at all.
+    calm_a = FactRecord("metric", "entity:c", "2025Q1", 100.0, "ev-calm", basis="observed")
+    calm_b = FactRecord("metric", "entity:c", "2025Q1", 101.0, "ev-calm", basis="inferred")
+    discrepancies = detect_numeric_discrepancies(
+        [b_legacy_b, a_inferred, calm_a, b_legacy_a, a_observed, calm_b]
+    )
+    assert [d.entity_ref for d in discrepancies] == ["entity:a", "entity:b"]
+    first, second = discrepancies
+    assert first.contributing_facts == (a_inferred, a_observed)
+    assert first.bases == ("inferred", "observed")
+    assert first.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    assert first.value_bases == ((12.0, "shared", "inferred"), (8.0, "shared", "observed"))
+    assert second.contributing_facts == (b_legacy_b, b_legacy_a)
+    assert second.bases == ("unknown", "unknown")
+    assert second.evidence_bases == (("shared", "unknown"), ("shared", "unknown"))
+    assert second.value_bases == ((2.0, "shared", "unknown"), (1.0, "shared", "unknown"))
+
+
+def test_result_provenance_max_pattern_and_raw_period_discrepancy() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    # The "max" branch contradicts on value > threshold: mixed latest facts
+    # (one above, one below) stay at_risk and retain both bases, tied to their
+    # own value/evidence associations; the older fact leaks nothing.
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "max", 10.0)
+    older = FactRecord("metric", "entity", "2024Q4", 99.0, "ev-old", basis="observed")
+    latest_inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+    latest_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-obs", basis="observed")
+    check = evaluate_claim(claim, [older, latest_observed, latest_inferred])
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("ev-inf", "ev-obs")
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("ev-inf", "inferred"), ("ev-obs", "observed"))
+    assert check.value_bases == ((8.0, "ev-inf", "inferred"), (12.0, "ev-obs", "observed"))
+    reversed_check = evaluate_claim(claim, [latest_inferred, latest_observed, older])
+    assert reversed_check.value_bases == check.value_bases
+
+    # Unsupported (raw) period labels group by exact text in discrepancies:
+    # the mixed pair sharing one label and one evidence ID retains its
+    # associations, while a singleton under a distinct raw label forms none.
+    raw_inferred = FactRecord("metric", "entity", "as_of:2025-03-31", 8.0, "shared", "inferred")
+    raw_observed = FactRecord("metric", "entity", "as_of:2025-03-31", 12.0, "shared", "observed")
+    other_raw = FactRecord("metric", "entity", "as_of:2025-06-30", 99.0, "shared", "observed")
+    discrepancies = detect_numeric_discrepancies([raw_observed, raw_inferred, other_raw])
+    assert len(discrepancies) == 1
+    discrepancy = discrepancies[0]
+    assert discrepancy.period == "as_of:2025-03-31"
+    assert discrepancy.contributing_facts == (raw_observed, raw_inferred)
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
+    assert discrepancy.value_bases == (
+        (12.0, "shared", "observed"),
+        (8.0, "shared", "inferred"),
+    )
 
 
 def _typed_mention(**changes: Any) -> Store:

@@ -22,6 +22,7 @@ PUB_STATES = frozenset({"PENDING", "COMPLETED", "TERMINATED"})
 _TRUNCATED_CURRENCY = re.compile(r"^[$€£¥][A-Za-z]+$")
 _NUMERIC_FIELDS = frozenset({"sort", "bps", "peak"})
 FactBasis = Literal["observed", "inferred", "unknown"]
+FACT_BASES: tuple[FactBasis, ...] = ("observed", "inferred", "unknown")
 
 
 @dataclass(frozen=True)
@@ -40,8 +41,11 @@ class FactRecord:
     basis: FactBasis = "unknown"
 
     def __post_init__(self) -> None:
-        if self.basis not in ("observed", "inferred", "unknown"):
-            raise ValueError(f"unsupported fact basis: {self.basis!r}")
+        if self.basis not in FACT_BASES:
+            raise ValueError(
+                f"unsupported fact basis: {self.basis!r}; "
+                f"expected one of {', '.join(repr(basis) for basis in FACT_BASES)}"
+            )
         if not math.isfinite(self.value):
             raise ValueError(f"fact value must be finite, got {self.value!r}")
 

@@ -928,6 +928,49 @@
       "snapshot_scope": "branch-state",
       "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
       "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
+    },
+    {
+      "source": "src/manager_mosaic/discrepancy.py:DiscrepancyRecord.value_bases",
+      "classification": "already-correct",
+      "rule": "Result provenance accessors expose each contributing fact's (value, evidence_id, basis) association in contributing order without deduplication; legacy constructors leave them empty.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-3"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md",
+        "docs/contracts/tracked-variable-v1.md"
+      ],
+      "probe_name": "test_result_value_bases_retain_basis_to_value_evidence_association",
+      "snapshot_scope": "branch-state",
+      "implementation_commit": "9c91bdd00f8d554e6454b24aaeb4e12c2b10e559",
+      "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
+    },
+    {
+      "source": "src/manager_mosaic/thesis.py:ThesisCheck.value_bases",
+      "classification": "already-correct",
+      "rule": "Result provenance accessors expose each contributing fact's (value, evidence_id, basis) association in contributing order without deduplication; legacy constructors leave them empty.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic",
+      "core_functions": [
+        "CF-4"
+      ],
+      "contracts": [
+        "docs/PRODUCT_CONTRACT.md",
+        "docs/contracts/mosaic-core-v1.md"
+      ],
+      "probe_name": "test_result_value_bases_retain_basis_to_value_evidence_association",
+      "snapshot_scope": "branch-state",
+      "implementation_commit": "9c91bdd00f8d554e6454b24aaeb4e12c2b10e559",
+      "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     }
   ],
   "resources": {

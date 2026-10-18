@@ -1,0 +1,18 @@
+$ python -m pytest tests/test_model_validation.py::test_result_provenance_mixed_distinct_evidence_and_alias_periods -q --no-cov -m "not slow"  # with basis forced to unknown in src/manager_mosaic/model.py (deliberate break)
+FAILED tests/test_model_validation.py::test_result_provenance_mixed_distinct_evidence_and_alias_periods - AssertionError: assert ('unknown', 'unknown') == ('inferred', 'observed')
+  
+  At index 0 diff: 'unknown' != 'inferred'
+  
+  Full diff:
+    (
+  -     'inferred',
+  -     'observed',
+  +     'unknown',
+  +     'unknown',
+    )
+============================== 1 failed in 0.15s ===============================
+$ python -m pytest tests/test_model_validation.py::test_result_provenance_mixed_distinct_evidence_and_alias_periods -q --no-cov -m "not slow"  # after byte-for-byte restore
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.09s ===============================

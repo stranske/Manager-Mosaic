@@ -1,0 +1,15 @@
+Deliberate-break gate for test_fact_provenance_rejects_nonstring_basis_values
+Scope change disconnected: in src/manager_mosaic/model.py, temporarily replaced
+  `if self.basis not in FACT_BASES:`
+with `if False:` so unsupported bases were no longer rejected.
+
+Broken run:
+$ python -m pytest tests/test_model_validation.py::test_fact_provenance_rejects_nonstring_basis_values -q --no-cov
+5 failed: every parametrised case (1, 1.5, b"observed", ("observed",), ["observed"])
+reported "Failed: DID NOT RAISE ValueError" (exit 1 from pytest).
+
+Restored run (model.py restored byte-for-byte, cmp identical, sha256
+d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd):
+same command passes (see delivery evidence in docs/evidence/issue-101/README.md).
+Observed restored output: "5 passed in 0.09s", exit 0; `cmp` identical and
+`sha256sum -c` OK against the pre-break hash above.

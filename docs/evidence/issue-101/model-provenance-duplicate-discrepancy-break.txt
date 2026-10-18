@@ -1,0 +1,14 @@
+Deliberate-break gate for test_discrepancy_accessors_retain_exact_duplicate_fact_provenance
+Scope change disconnected: in src/manager_mosaic/model.py, temporarily added
+  `object.__setattr__(self, "basis", "unknown")`
+at the start of FactRecord.__post_init__ so every explicit basis was erased.
+
+Broken run:
+$ python -m pytest tests/test_model_validation.py::test_discrepancy_accessors_retain_exact_duplicate_fact_provenance -q --no-cov -m "not slow"
+1 failed: discrepancy.bases was ('unknown', 'unknown', 'unknown', 'unknown')
+instead of ('observed', 'inferred', 'unknown', 'inferred') (exit 1 from pytest).
+
+Restored run (model.py restored byte-for-byte, cmp identical, sha256
+d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd):
+same command passes. Observed restored output: "1 passed in 0.07s", exit 0;
+`cmp` identical and sha256 matches the pre-break hash above.

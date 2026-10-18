@@ -1,0 +1,5 @@
+Deliberate break: removed 'unknown' from FACT_BASES in src/manager_mosaic/model.py
+Command: python -m pytest tests/test_model_validation.py::test_result_provenance_accessors_treat_explicit_unknown_as_unset --no-cov -q
+Result: 1 failed - ValueError: unsupported fact basis: 'unknown'; expected one of 'observed', 'inferred' (src/manager_mosaic/model.py:45)
+
+Restore: byte-for-byte from backup, cmp identical, sha256 d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd

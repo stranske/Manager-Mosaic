@@ -55,6 +55,11 @@ class ThesisCheck:
         """``(evidence_id, basis)`` per contributing fact, preserving repeats."""
         return tuple((fact.evidence_id, fact.basis) for fact in self.contributing_facts)
 
+    @property
+    def value_bases(self) -> tuple[tuple[float, str, FactBasis], ...]:
+        """``(value, evidence_id, basis)`` per contributing fact, preserving repeats."""
+        return tuple((fact.value, fact.evidence_id, fact.basis) for fact in self.contributing_facts)
+
 
 def evaluate_claim(
     claim: ThesisClaim,

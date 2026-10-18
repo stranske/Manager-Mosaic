@@ -11,6 +11,7 @@ from manager_mosaic.fact_keys import (
     validate_facts_and_claims,
 )
 from manager_mosaic.model import (
+    FACT_BASES,
     Document,
     Entry,
     FactBasis,
@@ -39,6 +40,7 @@ from manager_mosaic.model import (
 
 __version__ = "0.1.0"
 __all__ = [
+    "FACT_BASES",
     "Document",
     "Entry",
     "FactBasis",

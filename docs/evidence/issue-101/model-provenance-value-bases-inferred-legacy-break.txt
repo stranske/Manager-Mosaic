@@ -1,0 +1,63 @@
+=== DELIBERATE BREAK: basis forced to unknown in src/manager_mosaic/model.py ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py F                                         [100%]
+
+=================================== FAILURES ===================================
+_____ test_result_value_bases_inferred_only_discrepancy_and_legacy_results _____
+
+    def test_result_value_bases_inferred_only_discrepancy_and_legacy_results() -> None:
+        from manager_mosaic.discrepancy import detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        # Inferred-only discrepancy: every competing fact keeps its inferred basis
+        # tied to its value and evidence ID.
+        inferred_a = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+        inferred_b = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="inferred")
+        inferred_discrepancy = detect_numeric_discrepancies([inferred_a, inferred_b])[0]
+>       assert inferred_discrepancy.bases == ("inferred", "inferred")
+E       AssertionError: assert ('unknown', 'unknown') == ('inferred', 'inferred')
+E         
+E         At index 0 diff: 'unknown' != 'inferred'
+E         
+E         Full diff:
+E           (
+E         -     'inferred',
+E         -     'inferred',
+E         +     'unknown',
+E         +     'unknown',
+E           )
+
+tests/test_model_validation.py:455: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_result_value_bases_inferred_only_discrepancy_and_legacy_results - AssertionError: assert ('unknown', 'unknown') == ('inferred', 'inferred')
+  
+  At index 0 diff: 'unknown' != 'inferred'
+  
+  Full diff:
+    (
+  -     'inferred',
+  -     'inferred',
+  +     'unknown',
+  +     'unknown',
+    )
+============================== 1 failed in 0.09s ===============================
+break_exit:1
+src/manager_mosaic/model.py: OK
+=== RESTORED: model.py byte-for-byte identical ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.05s ===============================
+restored_exit:0

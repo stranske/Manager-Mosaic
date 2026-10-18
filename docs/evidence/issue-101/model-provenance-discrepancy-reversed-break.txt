@@ -1,0 +1,14 @@
+Deliberate-break gate for test_discrepancy_provenance_stays_tied_to_each_fact_under_reversed_input
+Scope change under test: DiscrepancyRecord.value_bases in src/manager_mosaic/discrepancy.py
+returns (value, evidence_id, basis) per contributing fact in contributing order.
+
+Break applied (temporary, not committed): value_bases sorted its tuples instead of
+preserving contributing-fact order.
+Command: python -m pytest tests/test_model_validation.py::test_discrepancy_provenance_stays_tied_to_each_fact_under_reversed_input -q -p no:cacheprovider --no-cov
+Result under break: 1 failed (reversed-input value_bases re-paired to sorted order).
+
+Restore: git checkout -- src/manager_mosaic/discrepancy.py (byte-for-byte restore).
+Command after restore: python -m pytest tests/test_model_validation.py -q
+Result after restore: 80 passed (coverage gate on the single file alone is below the
+repo-wide 80% threshold, as before; the full suite passes it).
+Full suite after restore: python -m pytest -q -m "not slow" -> 242 passed, coverage 97.70%.
