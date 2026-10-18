@@ -41,7 +41,10 @@ class FactRecord:
 
     def __post_init__(self) -> None:
         if self.basis not in ("observed", "inferred", "unknown"):
-            raise ValueError(f"unsupported fact basis: {self.basis!r}")
+            raise ValueError(
+                f"unsupported fact basis: {self.basis!r}; "
+                "expected one of 'observed', 'inferred', 'unknown'"
+            )
         if not math.isfinite(self.value):
             raise ValueError(f"fact value must be finite, got {self.value!r}")
 

@@ -180,3 +180,21 @@ Observed this session:
   `model.py` byte-for-byte (`sha256sum -c` OK, `cmp` identical) made it pass
   (exit 0). Both outputs are in
   [model-provenance-value-bases-inferred-legacy-break.txt](model-provenance-value-bases-inferred-legacy-break.txt).
+
+## Direct-construction accessors and invalid-basis message (follow-up)
+
+`FactRecord` now lists the supported bases in its rejection
+(`unsupported fact basis: ...; expected one of 'observed', 'inferred', 'unknown'`),
+and new regressions cover directly constructed `DiscrepancyRecord`/`ThesisCheck`
+provenance accessors, empty accessors for `insufficient_evidence`, and
+case/whitespace basis variants (`OBSERVED`, `""`, `" inferred"`, …).
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q --no-cov` — **66 passed**.
+- Focused model/discrepancy/thesis run — **103 passed**; full suite — **228 passed**, coverage 97.70%.
+- `black --workers 1 --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — **102 files unchanged**.
+- Deliberate break: removing the basis-validation raise in `model.py` made
+  12 invalid-basis tests fail (`DID NOT RAISE ValueError`); byte-for-byte
+  restore (`cmp` identical) made all 66 pass. See
+  [model-provenance-invalid-basis-break.txt](model-provenance-invalid-basis-break.txt).

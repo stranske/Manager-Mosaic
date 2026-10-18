@@ -483,6 +483,49 @@ def test_result_provenance_accessors_keep_legacy_facts_unknown() -> None:
     assert check.evidence_bases == (("ev", "unknown"),)
 
 
+def test_result_provenance_accessors_on_directly_constructed_results() -> None:
+    from manager_mosaic.discrepancy import DiscrepancyRecord
+    from manager_mosaic.thesis import ThesisCheck
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    discrepancy = DiscrepancyRecord(
+        "d",
+        "metric",
+        "entity",
+        "2025Q1",
+        (8.0, 8.0),
+        ("shared", "shared"),
+        "numeric_delta",
+        contributing_facts=(observed, inferred),
+    )
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
+    assert discrepancy.value_bases == ((8.0, "shared", "observed"), (8.0, "shared", "inferred"))
+
+    check = ThesisCheck("c", "at_risk", ("shared",), contributing_facts=(inferred, observed))
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    assert check.value_bases == ((8.0, "shared", "inferred"), (8.0, "shared", "observed"))
+
+
+def test_thesis_provenance_accessors_empty_for_insufficient_evidence() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    check = evaluate_claim(claim, [])
+    assert check.verdict == "insufficient_evidence"
+    assert check.bases == ()
+    assert check.evidence_bases == ()
+    assert check.value_bases == ()
+
+
+@pytest.mark.parametrize("basis", ["OBSERVED", "Observed", "", " inferred", "unknown "])
+def test_fact_provenance_rejects_case_and_whitespace_variants(basis: Any) -> None:
+    with pytest.raises(ValueError, match="unsupported fact basis.*expected one of"):
+        FactRecord("metric", "entity", "2025Q1", 1.0, "evidence", basis)  # type: ignore[arg-type]
+
+
 def test_top_level_fact_provenance_exports_match_model() -> None:
     from manager_mosaic.model import FactBasis as ModelFactBasis
     from manager_mosaic.model import FactRecord as ModelFactRecord

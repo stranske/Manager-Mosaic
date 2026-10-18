@@ -1,0 +1,5 @@
+Deliberate break: disconnected FactRecord basis validation in src/manager_mosaic/model.py (removed __post_init__ unsupported-basis raise).
+Command: python -m pytest tests/test_model_validation.py::test_fact_provenance_rejects_case_and_whitespace_variants tests/test_model_validation.py::test_fact_provenance_rejects_unsupported_basis -q --no-cov -p no:cacheprovider
+FAILED tests/test_model_validation.py::test_fact_provenance_rejects_unsupported_basis[basis5] - Failed: DID NOT RAISE ValueError
+FAILED tests/test_model_validation.py::test_fact_provenance_rejects_unsupported_basis[basis6] - Failed: DID NOT RAISE ValueError
+============================== 12 failed in 0.32s ==============================
