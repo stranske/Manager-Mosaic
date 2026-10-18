@@ -411,6 +411,38 @@ def test_thesis_accessors_retain_exact_duplicate_fact_provenance() -> None:
     assert reversed_check.value_bases == check.value_bases
 
 
+def test_result_provenance_mixed_distinct_evidence_and_alias_periods() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    # Mixed latest facts with distinct evidence IDs: each basis must stay tied
+    # to its own value/evidence association, not merged by basis or value.
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+    observed = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-obs", basis="observed")
+    older = FactRecord("metric", "entity", "2024Q4", 1.0, "ev-old", basis="inferred")
+    check = evaluate_claim(claim, [older, observed, inferred])
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("ev-inf", "ev-obs")
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("ev-inf", "inferred"), ("ev-obs", "observed"))
+    assert check.value_bases == ((8.0, "ev-inf", "inferred"), (12.0, "ev-obs", "observed"))
+
+    # The same facts under quarter-alias period spellings form one discrepancy
+    # group; every accessor retains the distinct basis/evidence association.
+    alias_inferred = FactRecord("metric", "entity", "Q1 2025", 8.0, "ev-inf", basis="inferred")
+    discrepancies = detect_numeric_discrepancies([observed, alias_inferred])
+    assert len(discrepancies) == 1
+    discrepancy = discrepancies[0]
+    assert discrepancy.period == "2025Q1"
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("ev-obs", "observed"), ("ev-inf", "inferred"))
+    assert discrepancy.value_bases == (
+        (12.0, "ev-obs", "observed"),
+        (8.0, "ev-inf", "inferred"),
+    )
+
+
 def test_fact_provenance_preserves_legacy_result_constructors() -> None:
     from manager_mosaic.discrepancy import DiscrepancyRecord
     from manager_mosaic.thesis import ThesisCheck

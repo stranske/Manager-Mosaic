@@ -319,3 +319,28 @@ Observed this session:
   `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made it
   pass (exit 0). See
   [model-provenance-thesis-duplicate-break.txt](model-provenance-thesis-duplicate-break.txt).
+
+## Distinct-evidence mixed and alias-period provenance (follow-up)
+
+New regression `test_result_provenance_mixed_distinct_evidence_and_alias_periods`
+in `tests/test_model_validation.py` covers two combinations not previously
+asserted directly: a mixed inferred/observed thesis check whose latest facts
+carry distinct evidence IDs (with an older inferred fact excluded), and the
+same mixed facts grouped as one discrepancy under quarter-alias period
+spellings (`2025Q1` vs `Q1 2025`). It asserts `bases`, `evidence_bases`, and
+`value_bases` keep each basis tied to its own value and evidence ID in both
+result types, and that the legacy `evidence_ids` tuple is unchanged.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q --no-cov -m "not slow"` — **79 passed**, exit 0.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py -q --no-cov -m "not slow"` — **116 passed**, exit 0.
+- `python -m pytest -q -m "not slow"` — **241 passed**, exit 0, coverage 97.70%.
+- `BLACK_CACHE_DIR=/tmp/mm-black-cache BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — passed, **102 files unchanged**, exit 0.
+- Deliberate break: forcing `basis` to `unknown` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `('unknown', 'unknown') != ('inferred', 'observed')` (exit 1); restoring
+  `model.py` byte-for-byte (`cmp` identical, sha256
+  `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made it
+  pass (exit 0). See
+  [model-provenance-distinct-evidence-alias-break.txt](model-provenance-distinct-evidence-alias-break.txt).
