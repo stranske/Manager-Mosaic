@@ -195,3 +195,24 @@ def test_discrepancy_canonical_identity_keeps_distinct_dimensions() -> None:
     ]
     assert len({r.discrepancy_id for r in records}) == len(identities)
     assert json.loads(records[-1].discrepancy_id)[2] == ["raw", "FY 2025"]
+
+
+def test_discrepancy_id_preserves_raw_labels_with_json_special_characters() -> None:
+    labels = ['FY"2025', r"FY\2025", "FY2025\n", "年度2025", "FY2025"]
+    facts = [
+        FactRecord('performance."irr"', r"fund:\alpha", label, value, f"ev-{i}-{value}")
+        for i, label in enumerate(labels)
+        for value in (8.0, 12.0)
+    ]
+
+    records = detect_numeric_discrepancies(facts)
+
+    assert len(records) == len(labels)
+    assert len({record.discrepancy_id for record in records}) == len(labels)
+    assert {record.period for record in records} == set(labels)
+    for record in records:
+        assert json.loads(record.discrepancy_id) == [
+            'performance."irr"',
+            r"fund:\alpha",
+            ["raw", record.period],
+        ]
