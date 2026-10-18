@@ -12,7 +12,7 @@ from manager_mosaic.fact_keys import (
     UnregisteredFactKeyError,
     validate_fact_keys,
 )
-from manager_mosaic.model import FactRecord
+from manager_mosaic.model import FactBasis, FactRecord
 from manager_mosaic.periods import period_chronology_key
 
 ThesisVerdict = Literal[
@@ -44,6 +44,16 @@ class ThesisCheck:
     verdict: ThesisVerdict
     evidence_ids: tuple[str, ...]
     contributing_facts: tuple[FactRecord, ...] = field(default=(), compare=False)
+
+    @property
+    def bases(self) -> tuple[FactBasis, ...]:
+        """Basis of each contributing fact, aligned with ``contributing_facts``."""
+        return tuple(fact.basis for fact in self.contributing_facts)
+
+    @property
+    def evidence_bases(self) -> tuple[tuple[str, FactBasis], ...]:
+        """``(evidence_id, basis)`` per contributing fact, preserving repeats."""
+        return tuple((fact.evidence_id, fact.basis) for fact in self.contributing_facts)
 
 
 def evaluate_claim(

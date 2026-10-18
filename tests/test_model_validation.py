@@ -361,8 +361,60 @@ def test_fact_provenance_preserves_legacy_result_constructors() -> None:
         "d", "metric", "entity", "2025Q1", (1.0, 2.0), ("a", "b"), "numeric_delta"
     )
     assert discrepancy.contributing_facts == ()
+    assert discrepancy.bases == ()
+    assert discrepancy.evidence_bases == ()
     check = ThesisCheck("c", "supported", ("a",))
     assert check.contributing_facts == ()
+    assert check.bases == ()
+    assert check.evidence_bases == ()
+
+
+def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    inferred_only = evaluate_claim(claim, [inferred])
+    assert inferred_only.bases == ("inferred",)
+    assert inferred_only.evidence_bases == (("shared", "inferred"),)
+
+    observed = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="observed")
+    mixed = evaluate_claim(claim, [observed, inferred])
+    assert mixed.bases == ("inferred", "observed")
+    assert mixed.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    # Repeated evidence ID is retained once per contributing fact, not deduplicated.
+    assert mixed.evidence_bases.count(("shared", "inferred")) == 1
+    assert len(mixed.evidence_bases) == 2
+
+    discrepancy = detect_numeric_discrepancies([observed, inferred])[0]
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
+
+
+def test_result_provenance_accessors_keep_legacy_facts_unknown() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    legacy = FactRecord("metric", "entity", "2025Q1", 8.0, "ev")
+    check = evaluate_claim(ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0), [legacy])
+    assert check.bases == ("unknown",)
+    assert check.evidence_bases == (("ev", "unknown"),)
+
+
+def test_top_level_fact_provenance_exports_match_model() -> None:
+    from manager_mosaic.model import FactBasis as ModelFactBasis
+    from manager_mosaic.model import FactRecord as ModelFactRecord
+
+    assert manager_mosaic.FactRecord is ModelFactRecord
+    assert manager_mosaic.FactBasis is ModelFactBasis
+    assert "FactRecord" in manager_mosaic.__all__
+    assert "FactBasis" in manager_mosaic.__all__
+    assert manager_mosaic.FactRecord("m", "e", "2025Q1", 1.0, "ev").basis == "unknown"
+    assert manager_mosaic.FactRecord("m", "e", "2025Q1", 1.0, "ev", basis="observed").basis == (
+        "observed"
+    )
+    with pytest.raises(ValueError, match="unsupported fact basis"):
+        manager_mosaic.FactRecord("m", "e", "2025Q1", 1.0, "ev", basis="extracted")  # type: ignore[arg-type]
 
 
 def _typed_mention(**changes: Any) -> Store:

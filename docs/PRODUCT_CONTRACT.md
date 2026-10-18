@@ -56,8 +56,12 @@ The caller must establish this label from separately validated source evidence.
 `DiscrepancyRecord.contributing_facts` retains every competing FactRecord with
 its value, evidence ID and basis. `ThesisCheck.contributing_facts` retains every
 matching latest-period fact; mixed bases and repeated evidence IDs remain
-separate associations. Legacy result constructors still accept their original
-arguments (the added tuple defaults empty). ThesisCheck equality retains its
+separate associations. Both result types also expose that provenance directly:
+`bases` returns the basis of each contributing fact in `contributing_facts`
+order, and `evidence_bases` returns the `(evidence_id, basis)` pair for each
+contributing fact without deduplicating repeated evidence IDs. Legacy result
+constructors leave both empty. `FactRecord` and `FactBasis` are also importable
+from the top-level `manager_mosaic` package, identical to the `model` classes. Legacy result constructors still accept their original arguments (the added tuple defaults empty). ThesisCheck equality retains its
 legacy claim/verdict/evidence-ID semantics; the supplemental contributing-fact
 associations remain inspectable and are excluded from that comparison. Existing `evidence_ids` conventions,
 thresholds, chronological selection and verdicts remain unchanged. Unknown or
