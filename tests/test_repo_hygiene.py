@@ -1,5 +1,7 @@
 """Repository-level checks for generated and deliberately vendored trees."""
 
+import ast
+import json
 import subprocess
 from pathlib import Path
 
@@ -49,3 +51,62 @@ def test_product_contract_documents_core_functions() -> None:
     contents = contract.read_text(encoding="utf-8")
     for core_function in range(1, 7):
         assert f"CF-{core_function}" in contents
+
+
+def test_public_contract_entrypoints_have_audited_dispositions() -> None:
+    catalog = json.loads((REPO_ROOT / "docs/audits/contract-enforcement-catalog.json").read_text())
+    audited = {row["source"] for row in catalog["entrypoints"]}
+    report = (REPO_ROOT / "contract-enforcement-audit.md").read_text()
+    for path in (REPO_ROOT / "src/manager_mosaic").glob("*.py"):
+        tree = ast.parse(path.read_text())
+        for node in tree.body:
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and not node.name.startswith("_"):
+                entrypoint = f"{path.relative_to(REPO_ROOT)}:{node.name}"
+                assert entrypoint in audited, f"Unmapped public input: {entrypoint}"
+    for row in catalog["entrypoints"]:
+        assert row["source"] in report
+        assert (REPO_ROOT / row["probe"]).is_file()
+        assert row["owner"]
+        if row["classification"] in {"confirmed-bug", "needs-investigation"}:
+            assert row["issues"], row
+
+
+def test_packaged_contract_resources_have_audited_consumers() -> None:
+    catalog = json.loads((REPO_ROOT / "docs/audits/contract-enforcement-catalog.json").read_text())
+    packaged = {
+        str(p.relative_to(REPO_ROOT))
+        for p in (REPO_ROOT / "src/manager_mosaic/schemas").glob("*.json")
+    }
+    packaged.add("src/manager_mosaic/fact_key_registry.json")
+    assert packaged == set(
+        catalog["resources"]
+    ), "New or missing packaged contract needs an audited consumer"
+    for path in packaged:
+        assert (REPO_ROOT / path).is_file()
+    for module, required_call in [
+        ("fact_keys", "load_fact_key_registry"),
+        ("evidence", "load_schema"),
+    ]:
+        tree = ast.parse((REPO_ROOT / f"src/manager_mosaic/{module}.py").read_text())
+        calls = {
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+        assert required_call in calls, f"Orphaned contract consumer: {module}:{required_call}"
+
+
+def test_audit_marks_raw_store_exception_and_optional_vocabulary_truthfully() -> None:
+    catalog = json.loads((REPO_ROOT / "docs/audits/contract-enforcement-catalog.json").read_text())
+    assert (
+        catalog["resources"]["src/manager_mosaic/schemas/mosaic-store-v1.schema.json"][
+            "exception_issue"
+        ]
+        == 96
+    )
+    assert catalog["additional_findings"] == []
+    report = (REPO_ROOT / "contract-enforcement-audit.md").read_text()
+    assert "intentionally-opt-in" in report
+    assert "Pending delivery" in report
+    for issue in (96, 97, 98, 101):
+        assert f"issues/{issue}" in report

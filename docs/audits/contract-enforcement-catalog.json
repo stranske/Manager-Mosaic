@@ -1,0 +1,399 @@
+{
+  "base": "2ec5f09",
+  "entrypoints": [
+    {
+      "source": "src/manager_mosaic/model.py:Fund",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Period",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Pub",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Mention",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Entry",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Theme",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Document",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Gap",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Store",
+      "classification": "confirmed-bug",
+      "rule": "Raw structure is constructed before validation; existing PR111 repairs this. Pending delivery is not a current-main pass.",
+      "issues": [
+        96
+      ],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Store.__post_init__",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Store.from_dict",
+      "classification": "confirmed-bug",
+      "rule": "Raw structure is constructed before validation; existing PR111 repairs this. Pending delivery is not a current-main pass.",
+      "issues": [
+        96
+      ],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:Store.from_json",
+      "classification": "confirmed-bug",
+      "rule": "Raw structure is constructed before validation; existing PR111 repairs this. Pending delivery is not a current-main pass.",
+      "issues": [
+        96
+      ],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:ValidationViolation",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:fund",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:period",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:pub",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:mention",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:entry",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:theme",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:document",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:gap",
+      "classification": "intentionally-opt-in",
+      "rule": "Typed constructors are building blocks; validate(Store) performs semantic checks, not implicit coercion.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:validate",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:derive_gaps",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:load_schema",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/evidence.py:load_evidence_schema",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_evidence_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/evidence.py:validate_evidence_object",
+      "classification": "confirmed-bug",
+      "rule": "Identity page/date/supersession rules missing on this public path; existing PR112 repairs them.",
+      "issues": [
+        97
+      ],
+      "probe": "tests/test_evidence_validation.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:load_fact_key_registry",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:FactKeyViolation",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:UnregisteredFactKeyError",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:validate_fact_keys",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:validate_claim_and_facts",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:validate_facts_and_claims",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/fact_keys.py:ensure_registered_fact_keys",
+      "classification": "already-correct",
+      "rule": "Registry validates keys/identities through explicit validators; discrepancy/thesis strict flags are intentionally opt-in (CF7).",
+      "issues": [],
+      "probe": "tests/test_fact_key_registry.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/discrepancy.py:FactRecord",
+      "classification": "confirmed-bug",
+      "rule": "Existing accepted101 owns caller-supplied basis propagation; verdict/threshold/latest-period rules pass existing tests.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_discrepancy_detection.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/discrepancy.py:FactRecord.__post_init__",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_discrepancy_detection.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/discrepancy.py:DiscrepancyRecord",
+      "classification": "confirmed-bug",
+      "rule": "Existing accepted101 owns caller-supplied basis propagation; verdict/threshold/latest-period rules pass existing tests.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_discrepancy_detection.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/discrepancy.py:detect_numeric_discrepancies",
+      "classification": "confirmed-bug",
+      "rule": "Grouping normalizes periods; identity still uses the first raw label on this main. PR113 fixes identity. Caller provenance belongs to accepted101.",
+      "issues": [
+        98,
+        101
+      ],
+      "probe": "tests/test_discrepancy_detection.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/thesis.py:ThesisClaim",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_thesis_monitoring.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/thesis.py:ThesisClaim.__post_init__",
+      "classification": "already-correct",
+      "rule": "Typed local values; explicit semantic validation where applicable.",
+      "issues": [],
+      "probe": "tests/test_thesis_monitoring.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/thesis.py:ThesisCheck",
+      "classification": "confirmed-bug",
+      "rule": "Existing accepted101 owns caller-supplied basis propagation; verdict/threshold/latest-period rules pass existing tests.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_thesis_monitoring.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/thesis.py:evaluate_claim",
+      "classification": "confirmed-bug",
+      "rule": "Existing accepted101 owns caller-supplied basis propagation; verdict/threshold/latest-period rules pass existing tests.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_thesis_monitoring.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/periods.py:period_chronology_key",
+      "classification": "already-correct",
+      "rule": "One shared quarter parser; unsupported labels fail explicitly for chronology; discrepancy raw labels remain exact.",
+      "issues": [],
+      "probe": "tests/test_thesis_monitoring.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/__init__.py:greet",
+      "classification": "intentionally-opt-in",
+      "rule": "Compatibility scaffold outside mosaic core contracts; direct unit probes only.",
+      "issues": [],
+      "probe": "tests/test_main.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/__init__.py:add",
+      "classification": "intentionally-opt-in",
+      "rule": "Compatibility scaffold outside mosaic core contracts; direct unit probes only.",
+      "issues": [],
+      "probe": "tests/test_main.py",
+      "owner": "Manager-Mosaic"
+    },
+    {
+      "source": "src/manager_mosaic/model.py:validate_payload",
+      "classification": "confirmed-bug",
+      "rule": "Existing issue96/PR111 introduces raw structure plus prerequisite-safe semantic diagnostics. Pending delivery, not yet a current-main symbol.",
+      "issues": [
+        96
+      ],
+      "probe": "tests/test_model_validation.py",
+      "owner": "Manager-Mosaic"
+    }
+  ],
+  "resources": {
+    "src/manager_mosaic/schemas/mosaic-store-v1.schema.json": {
+      "consumer": "src/manager_mosaic/model.py:load_schema",
+      "exception_issue": 96
+    },
+    "src/manager_mosaic/schemas/evidence-object-v1.schema.json": {
+      "consumer": "src/manager_mosaic/evidence.py:load_evidence_schema"
+    },
+    "src/manager_mosaic/fact_key_registry.json": {
+      "consumer": "src/manager_mosaic/fact_keys.py:load_fact_key_registry"
+    }
+  },
+  "additional_findings": []
+}
