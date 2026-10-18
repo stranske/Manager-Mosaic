@@ -40,8 +40,8 @@ all contributing fact/value/evidence/basis associations, including mixed bases a
 repeated evidence IDs, without changing evaluation policy. Both result types also
 expose `bases` and `evidence_bases` directly, and `FactRecord`/`FactBasis` are
 importable from the top-level `manager_mosaic` package. The product contract
-documents this caller boundary. Verified offline: 56 model tests, 93 focused
-model/discrepancy/thesis tests, and 218 full-suite tests passed. Temporarily erasing
+documents this caller boundary. Verified offline: 57 model tests, 94 focused
+model/discrepancy/thesis tests, and 219 full-suite tests passed. Temporarily erasing
 the caller's explicit basis in `model.py` failed the named regression; restoring
 the source passed. Commands and captured outcomes are in the
 [delivery evidence](docs/evidence/issue-101/README.md).

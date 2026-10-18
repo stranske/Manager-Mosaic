@@ -92,3 +92,26 @@ The requested commit was attempted after verification, but the sandbox mounts
 `fatal: Unable to create '.git/index.lock': Read-only file system`.
 The verified changes remain in the working tree; a runner with a writable Git
 metadata directory must stage and commit them.
+
+## Observed-only and discrepancy legacy-unknown accessors (follow-up)
+
+New regression `test_result_provenance_accessors_observed_only_and_discrepancy_legacy_unknown`
+in `tests/test_model_validation.py` covers the accessor matrix not previously
+asserted directly: observed-only `ThesisCheck.bases`/`evidence_bases`, a mixed
+observed/inferred `DiscrepancyRecord`, and legacy discrepancy facts staying
+`unknown` with a repeated evidence ID retained twice.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — collected 57 tests,
+  **57 passed**; the process exits 1 only on the whole-package coverage gate
+  (73.02% < 80% when a single test file runs against all of `src/`). The full
+  suite below meets that gate.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q -m 'not slow'`
+  — **94 passed**, exit 0.
+- `python -m pytest -q -m 'not slow'` — **219 passed**, exit 0, coverage 97.68%.
+- Deliberate break: forcing `basis` to `unknown` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `('unknown',) == ('observed',)` (exit 1); restoring `model.py` byte-for-byte
+  (`cmp` identical) made it pass (exit 0). Both outputs are in
+  [model-provenance-observed-only-break.txt](model-provenance-observed-only-break.txt).

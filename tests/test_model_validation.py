@@ -392,6 +392,29 @@ def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> N
     assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
 
 
+def test_result_provenance_accessors_observed_only_and_discrepancy_legacy_unknown() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-obs", basis="observed")
+    observed_only = evaluate_claim(claim, [observed])
+    assert observed_only.bases == ("observed",)
+    assert observed_only.evidence_bases == (("ev-obs", "observed"),)
+
+    inferred = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-inf", basis="inferred")
+    discrepancy = detect_numeric_discrepancies([observed, inferred])[0]
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("ev-obs", "observed"), ("ev-inf", "inferred"))
+
+    # Legacy discrepancy facts stay unknown, with repeated evidence IDs retained.
+    legacy_a = FactRecord("metric", "entity", "2025Q1", 1.0, "shared")
+    legacy_b = FactRecord("metric", "entity", "2025Q1", 2.0, "shared")
+    legacy = detect_numeric_discrepancies([legacy_a, legacy_b])[0]
+    assert legacy.bases == ("unknown", "unknown")
+    assert legacy.evidence_bases == (("shared", "unknown"), ("shared", "unknown"))
+
+
 def test_result_provenance_accessors_keep_legacy_facts_unknown() -> None:
     from manager_mosaic.thesis import ThesisClaim, evaluate_claim
 
