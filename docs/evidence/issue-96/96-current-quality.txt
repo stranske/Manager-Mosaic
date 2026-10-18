@@ -1,0 +1,13 @@
+Command: ['mypy', 'src/manager_mosaic/model.py', 'src/manager_mosaic/__init__.py', 'tests/test_payload_validation.py']
+Success: no issues found in 3 source files
+Exit code: 0
+Command: ['ruff', 'check', 'src/manager_mosaic/model.py', 'src/manager_mosaic/__init__.py', 'tests/test_model_validation.py', 'tests/test_payload_validation.py']
+All checks passed!
+Exit code: 0
+Command: ['git', 'diff', '--check']
+
+Exit code: 0
+schemas/mosaic-store-v1.schema.json: unchanged from HEAD and before implementation; SHA256 7ec1ebb067191e2ddaeefe1fce4ef5a928669368c9774bf68e53edc08619f072
+src/manager_mosaic/schemas/mosaic-store-v1.schema.json: unchanged from HEAD and before implementation; SHA256 7ec1ebb067191e2ddaeefe1fce4ef5a928669368c9774bf68e53edc08619f072
+src/manager_mosaic/model.py: byte-identical to HEAD
+tests/test_model_validation.py: byte-identical to HEAD
