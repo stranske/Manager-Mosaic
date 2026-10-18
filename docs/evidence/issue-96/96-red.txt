@@ -1,0 +1,61 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-96-validation
+configfile: pyproject.toml
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 30 items / 28 deselected / 2 selected
+
+tests/test_model_validation.py FF                                        [100%]
+
+=================================== FAILURES ===================================
+______ test_payload_collects_structural_and_independent_semantic_defects _______
+
+    def test_payload_collects_structural_and_independent_semantic_defects() -> None:
+        payload = json.loads((FIXTURES / "minimal_store.json").read_text())
+        item = payload["entries"][0]
+        del item["id"]
+        del payload["periods"][0]["label"]
+        mention_data = item["mentions"][0]
+        del mention_data["src"]
+        mention_data["inferred"] = "false"
+        mention_data["bps"] = "25"
+        mention_data["size"] = 36
+        item["first"] = "unknown-period"
+        item["pub"]["src"] = "unknown-document"
+        violations = validate_payload(payload)
+        paths = {v.record_id for v in violations}
+>       assert {
+            "$.entries[0].id",
+            "$.periods[0].label",
+            "$.entries[0].mentions[0].src",
+            "$.entries[0].mentions[0].inferred",
+            "$.entries[0].mentions[0].bps",
+            "$.entries[0].mentions[0].size",
+            "$.entries[0].first",
+            "$.entries[0].pub.src",
+        } <= paths
+E       AssertionError: assert {'$.entries[0...[0].src', ...} <= {'$.entries[0...s[0].pub.src'}
+E         
+E         Extra items in the left set:
+E         '$.periods[0].label'
+E         '$.entries[0].mentions[0].size'
+E         '$.entries[0].id'
+E         '$.entries[0].mentions[0].inferred'
+E         '$.entries[0].mentions[0].src'
+
+tests/test_model_validation.py:275: AssertionError
+_______ test_payload_missing_inferred_is_aggregated_before_construction ________
+
+    def test_payload_missing_inferred_is_aggregated_before_construction() -> None:
+        payload = json.loads((FIXTURES / "minimal_store.json").read_text())
+        del payload["entries"][0]["mentions"][0]["inferred"]
+>       assert any(v.record_id.endswith(".inferred") for v in validate_payload(payload))
+E       assert False
+E        +  where False = any(<generator object test_payload_missing_inferred_is_aggregated_before_construction.<locals>.<genexpr> at 0x10951cfb0>)
+
+tests/test_model_validation.py:302: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_payload_collects_structural_and_independent_semantic_defects
+FAILED tests/test_model_validation.py::test_payload_missing_inferred_is_aggregated_before_construction
+======================= 2 failed, 28 deselected in 0.26s =======================

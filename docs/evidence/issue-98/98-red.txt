@@ -1,0 +1,41 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-98-stable-id
+configfile: pyproject.toml
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 12 items / 10 deselected / 2 selected
+
+tests/test_discrepancy_detection.py FF                                   [100%]
+
+=================================== FAILURES ===================================
+____________ test_discrepancy_id_and_display_are_permutation_stable ____________
+
+    def test_discrepancy_id_and_display_are_permutation_stable() -> None:
+        facts = [FactRecord("performance.irr", "fund:alpha", label, value, f"ev-{i}")
+                 for i, (label, value) in enumerate(zip(["2025Q1", "2025-Q1", "Q1 2025"], [8.0, 12.0, 16.0], strict=True))]
+        results = [detect_numeric_discrepancies(list(order))[0] for order in permutations(facts)]
+>       assert len({r.discrepancy_id for r in results}) == 1
+E       assert 3 == 1
+E        +  where 3 = len({'["performance.irr","fund:alpha","2025-Q1"]', '["performance.irr","fund:alpha","2025Q1"]', '["performance.irr","fund:alpha","Q1 2025"]'})
+
+tests/test_discrepancy_detection.py:140: AssertionError
+________ test_discrepancy_canonical_identity_keeps_distinct_dimensions _________
+
+    def test_discrepancy_canonical_identity_keeps_distinct_dimensions() -> None:
+        identities = [("metric", "fund:a", "2025Q1"), ("other", "fund:a", "2025Q1"),
+                      ("metric", "fund:b", "2025Q1"), ("metric", "fund:a", "2025Q2"),
+                      ("metric", "fund:a", "FY2025"), ("metric", "fund:a", "FY 2025")]
+        records = [detect_numeric_discrepancies([
+            FactRecord(key, entity, period, 1.0, "ev-a"),
+            FactRecord(key, entity, period, 2.0, "ev-b"),
+        ])[0] for key, entity, period in identities]
+        assert len({r.discrepancy_id for r in records}) == len(identities)
+>       assert json.loads(records[-1].discrepancy_id)[2] == ["raw", "FY 2025"]
+E       AssertionError: assert 'FY 2025' == ['raw', 'FY 2025']
+
+tests/test_discrepancy_detection.py:158: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_discrepancy_detection.py::test_discrepancy_id_and_display_are_permutation_stable
+FAILED tests/test_discrepancy_detection.py::test_discrepancy_canonical_identity_keeps_distinct_dimensions
+======================= 2 failed, 10 deselected in 0.26s =======================

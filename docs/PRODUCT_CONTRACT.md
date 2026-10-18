@@ -8,7 +8,7 @@ data; it does not require a hosted service or database.
 
 | ID | A user can | Entry point | Observable outcome |
 | --- | --- | --- | --- |
-| CF-1 | An analyst can load a hand-edited mosaic store and validate it. | `manager_mosaic.model.validate(Store)` | All structural violations are returned in one pass; a valid store returns `[]`. |
+| CF-1 | An analyst can load a hand-edited mosaic store and validate it. | `manager_mosaic.validate_payload(raw_mapping)` then `Store.from_dict`; `validate(Store)` for typed models | Raw structure and applicable semantic violations are returned together with source paths; malformed structure raises one aggregated ValueError before construction. Valid payloads return `[]`. |
 | CF-2 | An analyst can derive coverage gaps without changing entry status. | `manager_mosaic.model.derive_gaps(Store)` | Missing mentions in active periods are listed as gaps; silence does not change an entry's status. |
 | CF-3 | An analyst can compare evidence for the same fact and see numeric conflicts. | `manager_mosaic.discrepancy.detect_numeric_discrepancies(facts)` | Conflicting values for a normalized `(fact_key, entity_ref, period)` surface as `numeric_delta` discrepancies. |
 | CF-4 | An analyst can evaluate an investment-thesis claim against available facts. | `manager_mosaic.thesis.evaluate_claim(claim, facts)` | The latest normalized-period facts produce `supported`, `at_risk`, `contradicted`, or `insufficient_evidence`. |
@@ -18,7 +18,7 @@ data; it does not require a hosted service or database.
 
 ## Primary user journey
 
-1. Load a local mosaic store and run `validate`.
+1. Parse the local JSON and run `validate_payload(raw_mapping)` to report all structural and applicable semantic defects. `Store.from_dict` checks raw structure before construction and raises one aggregated `ValueError`; use `validate(Store)` for typed semantic checks. Invalid prerequisite fields skip only dependent checks; malformed values are never coerced.
 2. Run `derive_gaps` to surface missing coverage without inferring an exit.
 3. Build evidence-linked `FactRecord` values from source material, then explicitly validate fact keys (opt-in): run `manager_mosaic.fact_keys.validate_fact_keys(facts, claims=[claim])` for one claim (or `claims=claims` for a prepared collection), which checks every key against `load_fact_key_registry()` and returns all unregistered-key violations with record identity in one pass. Alternatively pass `strict_fact_keys=True` to `evaluate_claim` (step 5) to raise `UnregisteredFactKeyError` instead of returning `insufficient_evidence` for a typo'd key. Callers that omit both retain the previous behaviour.
 4. Run `detect_numeric_discrepancies` across comparable facts (or `detect_numeric_discrepancies(..., strict_fact_keys=True)` per the opt-in in step 3 — the `validate_fact_keys_opt_in=True` alias spelling from step 5 is also accepted — so a typo'd key raises `UnregisteredFactKeyError` instead of silently forming an unrelated group).

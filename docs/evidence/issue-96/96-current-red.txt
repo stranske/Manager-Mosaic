@@ -1,0 +1,72 @@
+Command: ['/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', 'pytest', 'tests/test_model_validation.py', '-o', 'addopts=', '-m', 'not slow', '-k', 'test_payload_collects_structural_and_independent_semantic_defects or test_payload_missing_inferred_is_aggregated_before_construction']
+Mutation: disconnect only validate_payload structural collection
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 30 items / 28 deselected / 2 selected
+
+tests/test_model_validation.py FF                                        [100%]
+
+=================================== FAILURES ===================================
+______ test_payload_collects_structural_and_independent_semantic_defects _______
+
+    def test_payload_collects_structural_and_independent_semantic_defects() -> None:
+        payload = json.loads((FIXTURES / "minimal_store.json").read_text())
+        item = payload["entries"][0]
+        del item["id"]
+        del payload["periods"][0]["label"]
+        mention_data = item["mentions"][0]
+        del mention_data["src"]
+        mention_data["inferred"] = "false"
+        mention_data["bps"] = "25"
+        mention_data["size"] = 36
+        item["first"] = "unknown-period"
+        item["pub"]["src"] = "unknown-document"
+        violations = validate_payload(payload)
+        paths = {v.record_id for v in violations}
+>       assert {
+            "$.entries[0].id",
+            "$.periods[0].label",
+            "$.entries[0].mentions[0].src",
+            "$.entries[0].mentions[0].inferred",
+            "$.entries[0].mentions[0].bps",
+            "$.entries[0].mentions[0].size",
+            "$.entries[0].first",
+            "$.entries[0].pub.src",
+        } <= paths
+E       AssertionError: assert {'$.entries[0...[0].src', ...} <= {'$.entries[0...s[0].pub.src'}
+E
+E         Extra items in the left set:
+E         '$.entries[0].mentions[0].size'
+E         '$.entries[0].mentions[0].inferred'
+E         '$.periods[0].label'
+E         '$.entries[0].id'
+E         '$.entries[0].mentions[0].src'
+
+tests/test_model_validation.py:275: AssertionError
+_______ test_payload_missing_inferred_is_aggregated_before_construction ________
+
+    def test_payload_missing_inferred_is_aggregated_before_construction() -> None:
+        payload = json.loads((FIXTURES / "minimal_store.json").read_text())
+        del payload["entries"][0]["mentions"][0]["inferred"]
+>       assert any(v.record_id.endswith(".inferred") for v in validate_payload(payload))
+E       assert False
+E        +  where False = any(<generator object test_payload_missing_inferred_is_aggregated_before_construction.<locals>.<genexpr> at 0x7f0c25b97ae0>)
+
+tests/test_model_validation.py:302: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_payload_collects_structural_and_independent_semantic_defects - AssertionError: assert {'$.entries[0...[0].src', ...} <= {'$.entries[0...s[0].pub.src'}
+
+  Extra items in the left set:
+  '$.entries[0].mentions[0].size'
+  '$.entries[0].mentions[0].inferred'
+  '$.periods[0].label'
+  '$.entries[0].id'
+  '$.entries[0].mentions[0].src'
+FAILED tests/test_model_validation.py::test_payload_missing_inferred_is_aggregated_before_construction - assert False
+ +  where False = any(<generator object test_payload_missing_inferred_is_aggregated_before_construction.<locals>.<genexpr> at 0x7f0c25b97ae0>)
+======================= 2 failed, 28 deselected in 0.14s =======================
+
+Exit code: 1

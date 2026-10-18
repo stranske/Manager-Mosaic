@@ -29,7 +29,7 @@ class DiscrepancyRecord:
     contributing_facts: tuple[FactRecord, ...] = ()
 
 
-def _discrepancy_id(fact_key: str, entity_ref: str, period: str) -> str:
+def _discrepancy_id(fact_key: str, entity_ref: str, period: PeriodGroupKey) -> str:
     """Return an injective ID for the canonical (fact_key, entity_ref, period) tuple."""
     return json.dumps([fact_key, entity_ref, period], separators=(",", ":"))
 
@@ -92,8 +92,10 @@ def detect_numeric_discrepancies(
     for fact in facts:
         group_key = (fact.fact_key, fact.entity_ref, _period_group_key(fact.period))
         grouped[group_key].append(fact)
-        # Preserve the first observed label so output remains stable and human-readable.
-        representative_periods.setdefault(group_key, fact.period)
+        # The label is presentation only; choose it independently of input order.
+        representative_periods[group_key] = min(
+            representative_periods.get(group_key, fact.period), fact.period
+        )
 
     discrepancies: list[DiscrepancyRecord] = []
     for group_key, group in sorted(grouped.items()):
@@ -108,7 +110,7 @@ def detect_numeric_discrepancies(
         evidence_ids = tuple(fact.evidence_id for fact in group)
         discrepancies.append(
             DiscrepancyRecord(
-                discrepancy_id=_discrepancy_id(fact_key, entity_ref, period),
+                discrepancy_id=_discrepancy_id(fact_key, entity_ref, group_key[2]),
                 fact_key=fact_key,
                 entity_ref=entity_ref,
                 period=period,

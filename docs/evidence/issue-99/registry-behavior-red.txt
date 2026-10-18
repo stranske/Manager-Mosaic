@@ -1,0 +1,118 @@
+$ python -m pytest -q --no-cov -m "not slow" tests/test_fact_key_registry.py::test_public_validators_consult_default_fact_key_registry
+Mutation: replace registry resolution in validate_fact_keys with return [].
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 2 items
+
+tests/test_fact_key_registry.py FF                                       [100%]
+
+=================================== FAILURES ===================================
+_______ test_public_validators_consult_default_fact_key_registry[strict] _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fef5fd4d940>
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-2/test_public_validators_consult0')
+alias = False
+
+    @pytest.mark.parametrize("alias", [False, True], ids=["strict", "alias"])
+    def test_public_validators_consult_default_fact_key_registry(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path, alias: bool
+    ) -> None:
+        """The real registry controls validation, including keys added or removed locally."""
+        registry_file = tmp_path / "registry.json"
+        registry_file.write_text(json.dumps({"keys": ["audit.registered_metric"]}), encoding="utf-8")
+        monkeypatch.setattr(fact_keys, "_REPO_REGISTRY_PATH", registry_file)
+        claim = _claim("claim-custom", "audit.registered_metric")
+        registered = _fact("ev-custom", "audit.registered_metric")
+        removed = _fact("ev-removed", "performance.irr")
+    
+        assert validate_fact_keys([registered], claims=[claim]) == []
+>       assert [
+            (v.record_id, v.fact_key, v.record_kind)
+            for v in validate_fact_keys([registered, removed], claims=[claim])
+        ] == [("ev-removed", "performance.irr", "fact")]
+E       AssertionError: assert [] == [('ev-removed...irr', 'fact')]
+E         
+E         Right contains one more item: ('ev-removed', 'performance.irr', 'fact')
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     (
+E         -         'ev-removed',
+E         -         'performance.irr',
+E         -         'fact',
+E         -     ),
+E         - ]
+
+tests/test_fact_key_registry.py:101: AssertionError
+_______ test_public_validators_consult_default_fact_key_registry[alias] ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fef5fd4e9e0>
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-2/test_public_validators_consult1')
+alias = True
+
+    @pytest.mark.parametrize("alias", [False, True], ids=["strict", "alias"])
+    def test_public_validators_consult_default_fact_key_registry(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path, alias: bool
+    ) -> None:
+        """The real registry controls validation, including keys added or removed locally."""
+        registry_file = tmp_path / "registry.json"
+        registry_file.write_text(json.dumps({"keys": ["audit.registered_metric"]}), encoding="utf-8")
+        monkeypatch.setattr(fact_keys, "_REPO_REGISTRY_PATH", registry_file)
+        claim = _claim("claim-custom", "audit.registered_metric")
+        registered = _fact("ev-custom", "audit.registered_metric")
+        removed = _fact("ev-removed", "performance.irr")
+    
+        assert validate_fact_keys([registered], claims=[claim]) == []
+>       assert [
+            (v.record_id, v.fact_key, v.record_kind)
+            for v in validate_fact_keys([registered, removed], claims=[claim])
+        ] == [("ev-removed", "performance.irr", "fact")]
+E       AssertionError: assert [] == [('ev-removed...irr', 'fact')]
+E         
+E         Right contains one more item: ('ev-removed', 'performance.irr', 'fact')
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     (
+E         -         'ev-removed',
+E         -         'performance.irr',
+E         -         'fact',
+E         -     ),
+E         - ]
+
+tests/test_fact_key_registry.py:101: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_fact_key_registry.py::test_public_validators_consult_default_fact_key_registry[strict] - AssertionError: assert [] == [('ev-removed...irr', 'fact')]
+  
+  Right contains one more item: ('ev-removed', 'performance.irr', 'fact')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         'ev-removed',
+  -         'performance.irr',
+  -         'fact',
+  -     ),
+  - ]
+FAILED tests/test_fact_key_registry.py::test_public_validators_consult_default_fact_key_registry[alias] - AssertionError: assert [] == [('ev-removed...irr', 'fact')]
+  
+  Right contains one more item: ('ev-removed', 'performance.irr', 'fact')
+  
+  Full diff:
+  + []
+  - [
+  -     (
+  -         'ev-removed',
+  -         'performance.irr',
+  -         'fact',
+  -     ),
+  - ]
+============================== 2 failed in 0.20s ===============================
+
+Exit code: 1

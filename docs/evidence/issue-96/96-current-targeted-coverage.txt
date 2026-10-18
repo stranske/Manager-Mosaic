@@ -1,0 +1,23 @@
+Command: ['/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', 'pytest', 'tests/test_payload_validation.py', 'tests/test_model_validation.py', '-o', 'addopts=', '--cov=manager_mosaic.model', '--cov-report=term-missing', '-m', 'not slow']
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 53 items
+
+tests/test_payload_validation.py .......................                 [ 43%]
+tests/test_model_validation.py ..............................            [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.8-final-0 ________________
+
+Name                          Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------
+src/manager_mosaic/model.py     303      6    122      9    96%   170, 304, 391, 426, 498, 547, 589->586, 593->591, 611->613, 613->615
+-------------------------------------------------------------------------
+TOTAL                           303      6    122      9    96%
+Required test coverage of 80.0% reached. Total coverage: 96.47%
+============================== 53 passed in 0.40s ==============================
+
+Exit code: 0
