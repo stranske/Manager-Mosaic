@@ -11,6 +11,7 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from manager_mosaic.model import (
+    FactRecord,
     Store,
     derive_gaps,
     entry,
@@ -300,3 +301,58 @@ def test_fact_provenance_rejects_unsupported_basis(basis: Any) -> None:
 
     with pytest.raises(ValueError, match="unsupported fact basis"):
         FactRecord("metric", "entity", "2025Q1", 1.0, "evidence", basis)
+
+
+def test_model_fact_provenance_preserves_explicit_basis_and_legacy_import() -> None:
+    from manager_mosaic.discrepancy import FactRecord as LegacyFactRecord
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    assert LegacyFactRecord is FactRecord
+    fact = FactRecord("metric", "entity", "2025Q1", 8.0, "evidence", basis="inferred")
+    assert fact.basis == "inferred"
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    check = evaluate_claim(claim, [fact])
+    assert check.verdict == "contradicted"
+    assert [(f.value, f.evidence_id, f.basis) for f in check.contributing_facts] == [
+        (8.0, "evidence", "inferred")
+    ]
+    assert LegacyFactRecord("metric", "entity", "2025Q1", 8.0, "evidence").basis == "unknown"
+
+
+def test_fact_provenance_keeps_equal_values_and_duplicate_associations() -> None:
+    from collections import Counter
+
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "inferred")
+    unknown = FactRecord("metric", "entity", "2025Q1", 12.0, "shared")
+    facts = [observed, inferred, unknown, inferred]
+    discrepancy = detect_numeric_discrepancies(facts)[0]
+    assert discrepancy.contributing_facts == tuple(facts)
+    assert discrepancy.values == (8.0, 8.0, 12.0, 8.0)
+    assert discrepancy.evidence_ids == ("shared",) * 4
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    check = evaluate_claim(claim, facts)
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("shared",)
+    assert Counter((f.value, f.evidence_id, f.basis) for f in check.contributing_facts) == {
+        (8.0, "shared", "observed"): 1,
+        (8.0, "shared", "inferred"): 2,
+        (12.0, "shared", "unknown"): 1,
+    }
+    assert evaluate_claim(claim, facts[::-1]).contributing_facts == check.contributing_facts
+
+
+def test_fact_provenance_preserves_legacy_result_constructors() -> None:
+    from manager_mosaic.discrepancy import DiscrepancyRecord
+    from manager_mosaic.thesis import ThesisCheck
+
+    discrepancy = DiscrepancyRecord(
+        "d", "metric", "entity", "2025Q1", (1.0, 2.0), ("a", "b"), "numeric_delta"
+    )
+    assert discrepancy.contributing_facts == ()
+    check = ThesisCheck("c", "supported", ("a",))
+    assert check.contributing_facts == ()

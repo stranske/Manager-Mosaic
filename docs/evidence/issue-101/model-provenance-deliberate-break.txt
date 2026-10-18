@@ -1,0 +1,49 @@
+Mutation: temporarily replace the basis validation in src/manager_mosaic/model.py
+with object.__setattr__(self, "basis", "unknown"), disconnecting caller basis preservation.
+Command (identical in both runs):
+python -m pytest tests/test_model_validation.py::test_model_fact_provenance_preserves_explicit_basis_and_legacy_import --no-cov -q -m "not slow"
+
+BROKEN (exit 1):
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py F                                         [100%]
+
+=================================== FAILURES ===================================
+____ test_model_fact_provenance_preserves_explicit_basis_and_legacy_import _____
+
+    def test_model_fact_provenance_preserves_explicit_basis_and_legacy_import() -> None:
+        from manager_mosaic.discrepancy import FactRecord as LegacyFactRecord
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        assert LegacyFactRecord is FactRecord
+        fact = FactRecord("metric", "entity", "2025Q1", 8.0, "evidence", basis="inferred")
+>       assert fact.basis == "inferred"
+E       AssertionError: assert 'unknown' == 'inferred'
+E         
+E         - inferred
+E         + unknown
+
+tests/test_model_validation.py:312: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_model_fact_provenance_preserves_explicit_basis_and_legacy_import - AssertionError: assert 'unknown' == 'inferred'
+  
+  - inferred
+  + unknown
+============================== 1 failed in 0.13s ===============================
+
+RESTORED byte-for-byte (exit 0):
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.09s ===============================

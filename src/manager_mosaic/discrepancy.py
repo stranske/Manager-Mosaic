@@ -10,26 +10,11 @@ from dataclasses import dataclass
 from typing import Literal
 
 from manager_mosaic.fact_keys import UnregisteredFactKeyError, validate_fact_keys
+from manager_mosaic.model import FactBasis as FactBasis
+from manager_mosaic.model import FactRecord as FactRecord
 from manager_mosaic.periods import period_chronology_key
 
 PeriodGroupKey = tuple[Literal["quarter"], int, int] | tuple[Literal["raw"], str]
-FactBasis = Literal["observed", "inferred", "unknown"]
-
-
-@dataclass(frozen=True)
-class FactRecord:
-    fact_key: str
-    entity_ref: str
-    period: str
-    value: float
-    evidence_id: str
-    basis: FactBasis = "unknown"
-
-    def __post_init__(self) -> None:
-        if self.basis not in ("observed", "inferred", "unknown"):
-            raise ValueError(f"unsupported fact basis: {self.basis!r}")
-        if not math.isfinite(self.value):
-            raise ValueError(f"fact value must be finite, got {self.value!r}")
 
 
 @dataclass(frozen=True)

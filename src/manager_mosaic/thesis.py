@@ -7,12 +7,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Literal
 
-from manager_mosaic.discrepancy import FactRecord
 from manager_mosaic.fact_keys import (
     FactKeyViolation,
     UnregisteredFactKeyError,
     validate_fact_keys,
 )
+from manager_mosaic.model import FactRecord
 from manager_mosaic.periods import period_chronology_key
 
 ThesisVerdict = Literal[

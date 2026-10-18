@@ -32,9 +32,18 @@ Field names come from the tool already in use rather than being invented here, a
 
 ### Fact provenance in local results
 
-Pass an explicit `basis` to FactRecord when its source supports observed/inferred
-classification; legacy facts remain unknown. Discrepancy and thesis outputs keep
+Pass an explicit `basis` to `manager_mosaic.model.FactRecord` when its source supports
+observed/inferred classification; legacy facts remain unknown. The existing
+`manager_mosaic.discrepancy.FactRecord` import and constructors remain compatible.
+Discrepancy and thesis outputs keep
 all contributing fact/value/evidence/basis associations, including mixed bases and
 repeated evidence IDs, without changing evaluation policy. The product contract
-documents this caller boundary. Verify offline with `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q`; no extraction/hosting layer or
-method-to-basis inference is introduced.
+documents this caller boundary. Verified offline: 32 model tests, 61 focused
+model/discrepancy/thesis tests, and 131 full-suite tests passed. Temporarily erasing
+the caller's explicit basis in `model.py` failed the named regression; restoring
+the source passed. Commands and captured outcomes are in the
+[delivery evidence](docs/evidence/issue-101/README.md).
+
+This scope excludes extraction, hosting, and method-to-basis inference. Mention
+boolean validation is covered by the merged store-validation candidate; shared
+interchange contracts retain their existing owners.

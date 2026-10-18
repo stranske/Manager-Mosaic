@@ -14,11 +14,34 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Literal
 
 PUB_STATES = frozenset({"PENDING", "COMPLETED", "TERMINATED"})
 _TRUNCATED_CURRENCY = re.compile(r"^[$€£¥][A-Za-z]+$")
 _NUMERIC_FIELDS = frozenset({"sort", "bps", "peak"})
+FactBasis = Literal["observed", "inferred", "unknown"]
+
+
+@dataclass(frozen=True)
+class FactRecord:
+    """A numeric assertion with a caller-supplied basis, independent of evidence method.
+
+    Omitted basis is unknown, never an implicit observation. The evidence ID
+    references separately validated evidence; this model does not classify it.
+    """
+
+    fact_key: str
+    entity_ref: str
+    period: str
+    value: float
+    evidence_id: str
+    basis: FactBasis = "unknown"
+
+    def __post_init__(self) -> None:
+        if self.basis not in ("observed", "inferred", "unknown"):
+            raise ValueError(f"unsupported fact basis: {self.basis!r}")
+        if not math.isfinite(self.value):
+            raise ValueError(f"fact value must be finite, got {self.value!r}")
 
 
 @dataclass(frozen=True, slots=True)

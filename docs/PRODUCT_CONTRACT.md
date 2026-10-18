@@ -39,21 +39,29 @@ Run the contract-presence gate independently:
 python3 -m pytest -q --no-cov tests/test_repo_hygiene.py::test_product_contract_documents_core_functions
 ```
 
-
-
 ## Caller-supplied fact provenance
 
-Local `FactRecord(..., basis="observed" | "inferred" | "unknown")` preserves a
-caller's explicit basis. The default is `unknown`, so the old five-argument
+Local `manager_mosaic.model.FactRecord(..., basis="observed" | "inferred" | "unknown")`
+preserves a caller's explicit basis. The existing import from
+`manager_mosaic.discrepancy` remains an alias of the same class. `observed` labels
+an observation supported directly by source evidence; `inferred` labels a derived
+assertion. `unknown` means the basis has not been established, not that a fact is
+observed. The default is `unknown`, so the old five-argument
 constructor stays valid without inventing observed status. Unsupported bases
-raise `ValueError`; extraction `method` is never mapped to a basis implicitly.
+including explicit `None` raise `ValueError`; use `unknown` or omit the argument
+for an unset basis. Extraction `method` records production/extraction, not this
+classification, and is never mapped to a basis implicitly.
 The caller must establish this label from separately validated source evidence.
 
 `DiscrepancyRecord.contributing_facts` retains every competing FactRecord with
 its value, evidence ID and basis. `ThesisCheck.contributing_facts` retains every
 matching latest-period fact; mixed bases and repeated evidence IDs remain
 separate associations. Legacy result constructors still accept their original
-arguments (the added tuple defaults empty). ThesisCheck equality retains its legacy claim/verdict/evidence-ID semantics; the supplemental contributing-fact associations remain inspectable and are excluded from that comparison. Existing `evidence_ids` conventions,
+arguments (the added tuple defaults empty). ThesisCheck equality retains its
+legacy claim/verdict/evidence-ID semantics; the supplemental contributing-fact
+associations remain inspectable and are excluded from that comparison. Existing `evidence_ids` conventions,
 thresholds, chronological selection and verdicts remain unchanged. Unknown or
 inferred facts are not excluded from evaluation. Mention.inferred and shared
-interchange schemas remain under their existing validation owners.
+interchange schemas remain under their existing validation owners. Mention boolean
+validation is covered by the merged store-validation candidate and is excluded
+from this fact-provenance change.
