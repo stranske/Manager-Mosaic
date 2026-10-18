@@ -805,6 +805,45 @@ def test_discrepancy_provenance_is_isolated_per_group() -> None:
     assert second.value_bases == ((2.0, "shared", "unknown"), (1.0, "shared", "unknown"))
 
 
+def test_result_provenance_max_pattern_and_raw_period_discrepancy() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    # The "max" branch contradicts on value > threshold: mixed latest facts
+    # (one above, one below) stay at_risk and retain both bases, tied to their
+    # own value/evidence associations; the older fact leaks nothing.
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "max", 10.0)
+    older = FactRecord("metric", "entity", "2024Q4", 99.0, "ev-old", basis="observed")
+    latest_inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+    latest_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-obs", basis="observed")
+    check = evaluate_claim(claim, [older, latest_observed, latest_inferred])
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("ev-inf", "ev-obs")
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("ev-inf", "inferred"), ("ev-obs", "observed"))
+    assert check.value_bases == ((8.0, "ev-inf", "inferred"), (12.0, "ev-obs", "observed"))
+    reversed_check = evaluate_claim(claim, [latest_inferred, latest_observed, older])
+    assert reversed_check.value_bases == check.value_bases
+
+    # Unsupported (raw) period labels group by exact text in discrepancies:
+    # the mixed pair sharing one label and one evidence ID retains its
+    # associations, while a singleton under a distinct raw label forms none.
+    raw_inferred = FactRecord("metric", "entity", "as_of:2025-03-31", 8.0, "shared", "inferred")
+    raw_observed = FactRecord("metric", "entity", "as_of:2025-03-31", 12.0, "shared", "observed")
+    other_raw = FactRecord("metric", "entity", "as_of:2025-06-30", 99.0, "shared", "observed")
+    discrepancies = detect_numeric_discrepancies([raw_observed, raw_inferred, other_raw])
+    assert len(discrepancies) == 1
+    discrepancy = discrepancies[0]
+    assert discrepancy.period == "as_of:2025-03-31"
+    assert discrepancy.contributing_facts == (raw_observed, raw_inferred)
+    assert discrepancy.bases == ("observed", "inferred")
+    assert discrepancy.evidence_bases == (("shared", "observed"), ("shared", "inferred"))
+    assert discrepancy.value_bases == (
+        (12.0, "shared", "observed"),
+        (8.0, "shared", "inferred"),
+    )
+
+
 def _typed_mention(**changes: Any) -> Store:
     """Exercise the retained typed API independently of raw-payload admission."""
     store = _load("minimal_store.json")

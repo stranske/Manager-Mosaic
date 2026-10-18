@@ -386,3 +386,29 @@ Observed this session:
   `src/manager_mosaic/model.py` made both new regressions fail (2 failed);
   restoring that file byte-for-byte with `git checkout` made them pass again.
   See [model-provenance-group-isolation-break.txt](model-provenance-group-isolation-break.txt).
+
+## Max-pattern thesis and raw-period discrepancy provenance (follow-up)
+
+New regression `test_result_provenance_max_pattern_and_raw_period_discrepancy`
+in `tests/test_model_validation.py` covers two combinations not previously
+asserted directly: the thesis `max` branch (contradiction on value above
+threshold) with mixed inferred/observed latest facts — verdict `at_risk`, older
+observed fact excluded, each basis tied to its own value/evidence association
+under reversed input — and a discrepancy over unsupported raw period labels
+(`as_of:2025-03-31`), which group by exact text while a singleton under a
+distinct raw label forms no discrepancy.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — **83 passed**
+  (single-file coverage 73.97% < 80% exits 1 as before; full suite below).
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py -q --no-cov -m "not slow"` — **120 passed**, exit 0.
+- `python -m pytest -q -m "not slow"` — **245 passed**, exit 0, coverage 97.70%.
+- `BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — passed, **102 files unchanged**, exit 0.
+- Deliberate break: forcing `basis` to `unknown` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `('unknown', 'unknown') == ('inferred', 'observed')` (exit 1); restoring
+  `model.py` byte-for-byte (`cmp` identical, sha256
+  `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made it
+  pass (exit 0). See
+  [model-provenance-max-raw-break.txt](model-provenance-max-raw-break.txt).

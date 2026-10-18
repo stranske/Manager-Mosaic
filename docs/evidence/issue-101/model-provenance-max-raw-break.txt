@@ -1,0 +1,68 @@
+DELIBERATE BREAK: forced basis to unknown in src/manager_mosaic/model.py
+=== broken run ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py F                                         [100%]
+
+=================================== FAILURES ===================================
+________ test_result_provenance_max_pattern_and_raw_period_discrepancy _________
+
+    def test_result_provenance_max_pattern_and_raw_period_discrepancy() -> None:
+        from manager_mosaic.discrepancy import detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        # The "max" branch contradicts on value > threshold: mixed latest facts
+        # (one above, one below) stay at_risk and retain both bases, tied to their
+        # own value/evidence associations; the older fact leaks nothing.
+        claim = ThesisClaim("c", "Metric", "entity", "metric", "max", 10.0)
+        older = FactRecord("metric", "entity", "2024Q4", 99.0, "ev-old", basis="observed")
+        latest_inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+        latest_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "ev-obs", basis="observed")
+        check = evaluate_claim(claim, [older, latest_observed, latest_inferred])
+        assert check.verdict == "at_risk"
+        assert check.evidence_ids == ("ev-inf", "ev-obs")
+>       assert check.bases == ("inferred", "observed")
+E       AssertionError: assert ('unknown', 'unknown') == ('inferred', 'observed')
+E         
+E         At index 0 diff: 'unknown' != 'inferred'
+E         
+E         Full diff:
+E           (
+E         -     'inferred',
+E         -     'observed',
+E         +     'unknown',
+E         +     'unknown',
+E           )
+
+tests/test_model_validation.py:822: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_result_provenance_max_pattern_and_raw_period_discrepancy - AssertionError: assert ('unknown', 'unknown') == ('inferred', 'observed')
+  
+  At index 0 diff: 'unknown' != 'inferred'
+  
+  Full diff:
+    (
+  -     'inferred',
+  -     'observed',
+  +     'unknown',
+  +     'unknown',
+    )
+============================== 1 failed in 0.09s ===============================
+broken exit: 1
+=== restored run ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.05s ===============================
+restored exit: 0
