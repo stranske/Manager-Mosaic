@@ -1,0 +1,114 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-97-identity
+configfile: pyproject.toml
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 19 items / 15 deselected / 4 selected
+
+tests/test_evidence_validation.py FFFF                                   [100%]
+
+=================================== FAILURES ===================================
+_ test_document_identity_rejects_individual_defects[page-conflicts with locator.page] _
+
+defect = 'page', expected = 'conflicts with locator.page'
+
+    @pytest.mark.parametrize(
+        "defect, expected",
+        [
+            ("page", "conflicts with locator.page"),
+            ("date", "ISO calendar date"),
+            ("supersedes", "earlier byte version"),
+        ],
+    )
+    def test_document_identity_rejects_individual_defects(defect: str, expected: str) -> None:
+        payload = _identity_payload()
+        if defect == "page":
+            payload["document_ref"]["page"] = 7
+        elif defect == "date":
+            payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+        else:
+            payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+>       assert any(expected in v for v in validate_evidence_object(payload))
+E       assert False
+E        +  where False = any(<generator object test_document_identity_rejects_individual_defects.<locals>.<genexpr> at 0x113b93b90>)
+
+tests/test_evidence_validation.py:147: AssertionError
+__ test_document_identity_rejects_individual_defects[date-ISO calendar date] ___
+
+defect = 'date', expected = 'ISO calendar date'
+
+    @pytest.mark.parametrize(
+        "defect, expected",
+        [
+            ("page", "conflicts with locator.page"),
+            ("date", "ISO calendar date"),
+            ("supersedes", "earlier byte version"),
+        ],
+    )
+    def test_document_identity_rejects_individual_defects(defect: str, expected: str) -> None:
+        payload = _identity_payload()
+        if defect == "page":
+            payload["document_ref"]["page"] = 7
+        elif defect == "date":
+            payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+        else:
+            payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+>       assert any(expected in v for v in validate_evidence_object(payload))
+E       assert False
+E        +  where False = any(<generator object test_document_identity_rejects_individual_defects.<locals>.<genexpr> at 0x113c9cd40>)
+
+tests/test_evidence_validation.py:147: AssertionError
+_ test_document_identity_rejects_individual_defects[supersedes-earlier byte version] _
+
+defect = 'supersedes', expected = 'earlier byte version'
+
+    @pytest.mark.parametrize(
+        "defect, expected",
+        [
+            ("page", "conflicts with locator.page"),
+            ("date", "ISO calendar date"),
+            ("supersedes", "earlier byte version"),
+        ],
+    )
+    def test_document_identity_rejects_individual_defects(defect: str, expected: str) -> None:
+        payload = _identity_payload()
+        if defect == "page":
+            payload["document_ref"]["page"] = 7
+        elif defect == "date":
+            payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+        else:
+            payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+>       assert any(expected in v for v in validate_evidence_object(payload))
+E       assert False
+E        +  where False = any(<generator object test_document_identity_rejects_individual_defects.<locals>.<genexpr> at 0x112e1b9f0>)
+
+tests/test_evidence_validation.py:147: AssertionError
+__ test_document_identity_combined_defects_aggregate_with_schema_and_excerpt ___
+
+    def test_document_identity_combined_defects_aggregate_with_schema_and_excerpt() -> None:
+        payload = _identity_payload()
+        payload["document_ref"]["page"] = 7
+        payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+        payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+        del payload["excerpt"]
+        payload["method"] = "telepathy"
+        violations = validate_evidence_object(payload)
+        for marker in [
+            "conflicts with locator.page",
+            "ISO calendar date",
+            "earlier byte version",
+            "excerpt",
+            "telepathy",
+        ]:
+>           assert any(marker in v for v in violations)
+E           assert False
+E            +  where False = any(<generator object test_document_identity_combined_defects_aggregate_with_schema_and_excerpt.<locals>.<genexpr> at 0x112a39630>)
+
+tests/test_evidence_validation.py:165: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_evidence_validation.py::test_document_identity_rejects_individual_defects[page-conflicts with locator.page]
+FAILED tests/test_evidence_validation.py::test_document_identity_rejects_individual_defects[date-ISO calendar date]
+FAILED tests/test_evidence_validation.py::test_document_identity_rejects_individual_defects[supersedes-earlier byte version]
+FAILED tests/test_evidence_validation.py::test_document_identity_combined_defects_aggregate_with_schema_and_excerpt
+======================= 4 failed, 15 deselected in 0.23s =======================

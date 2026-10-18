@@ -1,0 +1,69 @@
+Command: pytest tests/test_evidence_validation.py::test_document_identity_combined_defects_returns_all_three_violations -m not slow --override-ini=addopts=-v
+
+RED: helper call temporarily disconnected; exit 1
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.14.8/x64/bin/python
+cachedir: .pytest_cache
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collecting ... collected 1 item
+
+tests/test_evidence_validation.py::test_document_identity_combined_defects_returns_all_three_violations FAILED [100%]
+
+=================================== FAILURES ===================================
+_____ test_document_identity_combined_defects_returns_all_three_violations _____
+
+    def test_document_identity_combined_defects_returns_all_three_violations() -> None:
+        """Schema-valid fields can still violate all three identity relationships."""
+        payload = _identity_payload()
+        payload["document_ref"]["page"] = 7
+        payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+        payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+    
+>       assert sorted(validate_evidence_object(payload)) == sorted(
+            [
+                "document_ref.page conflicts with locator.page",
+                "document_ref.doc_key as_of must be an ISO calendar date or unknown",
+                "document_ref.supersedes must name an earlier byte version",
+            ]
+        )
+E       AssertionError: assert [] == ['document_re...byte version']
+E         
+E         Right contains 3 more items, first extra item: 'document_ref.doc_key as_of must be an ISO calendar date or unknown'
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     'document_ref.doc_key as_of must be an ISO calendar date or unknown',
+E         -     'document_ref.page conflicts with locator.page',
+E         -     'document_ref.supersedes must name an earlier byte version',
+E         - ]
+
+tests/test_evidence_validation.py:157: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_evidence_validation.py::test_document_identity_combined_defects_returns_all_three_violations - AssertionError: assert [] == ['document_re...byte version']
+  
+  Right contains 3 more items, first extra item: 'document_ref.doc_key as_of must be an ISO calendar date or unknown'
+  
+  Full diff:
+  + []
+  - [
+  -     'document_ref.doc_key as_of must be an ISO calendar date or unknown',
+  -     'document_ref.page conflicts with locator.page',
+  -     'document_ref.supersedes must name an earlier byte version',
+  - ]
+============================== 1 failed in 0.13s ===============================
+
+GREEN: original source bytes restored; exit 0
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.14.8/x64/bin/python
+cachedir: .pytest_cache
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collecting ... collected 1 item
+
+tests/test_evidence_validation.py::test_document_identity_combined_defects_returns_all_three_violations PASSED [100%]
+
+============================== 1 passed in 0.07s ===============================
