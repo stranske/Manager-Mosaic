@@ -381,8 +381,8 @@ def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> N
 
     observed = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="observed")
     mixed = evaluate_claim(claim, [observed, inferred])
-    assert set(mixed.bases) == {"observed", "inferred"}
-    assert sorted(mixed.evidence_bases) == [("shared", "inferred"), ("shared", "observed")]
+    assert mixed.bases == ("inferred", "observed")
+    assert mixed.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
     # Repeated evidence ID is retained once per contributing fact, not deduplicated.
     assert mixed.evidence_bases.count(("shared", "inferred")) == 1
     assert len(mixed.evidence_bases) == 2

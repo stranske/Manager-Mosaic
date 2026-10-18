@@ -1,12 +1,19 @@
 # Public contract enforcement audit
 
 Audited production snapshot: `2ec5f0998c7792c970c5de0dd863c118fb1377c0`
-(`origin/main` in this checkout). This branch adds tests and audit artifacts;
-production package code remains unchanged. Findings describe that source snapshot,
+(the original audit base). The historical audit added tests and audit artifacts
+without production edits. Subsequent implementation branches add production behavior.
+Historical findings describe that source snapshot,
 not the eventual behavior of related implementation PRs. Pending delivery is not
 a passing implementation. All probes use local synthetic data.
 
 Integration note (PR115): the canonical `FactRecord` and its validation hook now live in `model.py`; `discrepancy.FactRecord` remains a compatible alias. The machine inventory and corresponding entrypoint rows below follow that defining module and the existing source101 regression probes. Historical findings and their original snapshot remain preserved.
+
+PR117 integration note: the four result-accessor catalog entries are explicitly
+`branch-state`, verified at `a5d4d452bbe79d079f3352b835211ce8876f006d`. Their
+`already-correct` accessor classifications do not revise the historical parent
+result-type defects at the audit base. PR117 extends merged PR115 with ordered
+accessors and top-level aliases; both implementations are retained.
 
 ## Contract boundaries and rule/path dispositions
 

@@ -860,7 +860,10 @@
         "docs/contracts/mosaic-core-v1.md",
         "docs/contracts/tracked-variable-v1.md"
       ],
-      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases"
+      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases",
+      "snapshot_scope": "branch-state",
+      "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
+      "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     },
     {
       "source": "src/manager_mosaic/discrepancy.py:DiscrepancyRecord.evidence_bases",
@@ -879,7 +882,10 @@
         "docs/contracts/mosaic-core-v1.md",
         "docs/contracts/tracked-variable-v1.md"
       ],
-      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases"
+      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases",
+      "snapshot_scope": "branch-state",
+      "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
+      "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     },
     {
       "source": "src/manager_mosaic/thesis.py:ThesisCheck.bases",
@@ -897,7 +903,10 @@
         "docs/PRODUCT_CONTRACT.md",
         "docs/contracts/mosaic-core-v1.md"
       ],
-      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases"
+      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases",
+      "snapshot_scope": "branch-state",
+      "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
+      "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     },
     {
       "source": "src/manager_mosaic/thesis.py:ThesisCheck.evidence_bases",
@@ -915,7 +924,10 @@
         "docs/PRODUCT_CONTRACT.md",
         "docs/contracts/mosaic-core-v1.md"
       ],
-      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases"
+      "probe_name": "test_result_provenance_accessors_expose_inferred_only_and_mixed_bases",
+      "snapshot_scope": "branch-state",
+      "implementation_commit": "a5d4d452bbe79d079f3352b835211ce8876f006d",
+      "snapshot_note": "Accessor correctness is verified on this implementation branch, not the historical top-level audit base. It does not reclassify the parent result-type defects recorded for issue 101 at that base."
     }
   ],
   "resources": {
