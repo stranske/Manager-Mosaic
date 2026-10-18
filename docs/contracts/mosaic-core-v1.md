@@ -113,3 +113,19 @@ Deliberate break: set `fact_key` to `""` in `valid_mosaic_fact.json`, run
 `python -m pytest tests/contracts/test_backplane_schemas.py::test_mosaic_core_fixture_validates -q`,
 observe failure, restore the fixture, and observe success. Record that transcript
 in the implementation PR. `test_manifest_path_rejects_traversal` must also pass.
+
+
+### Canonical discrepancy identity
+
+A discrepancy ID is injective compact JSON of `[fact_key, entity_ref, period_key]`.
+The canonical period key is `["quarter", year, quarter]` using the shared period
+normalizer, or `["raw", exact_label]` for unsupported periods. Quarter aliases
+and input permutations therefore identify the same discrepancy; unsupported
+labels remain distinct. The display `period` is the lexicographically smallest
+original label in its group and does not define identity. Values and evidence IDs
+retain their pairwise associations in input order.
+
+Compatibility: IDs previously serialized the first raw period label. Persisted
+review state or links keyed to those IDs need explicit migration/recomputation
+from the original fact group; old IDs are not silently treated as equivalent.
+Thresholds, grouping rules and thesis verdicts are unchanged.
