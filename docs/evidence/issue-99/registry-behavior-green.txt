@@ -1,0 +1,14 @@
+$ python -m pytest -q --no-cov -m "not slow" tests/test_fact_key_registry.py::test_public_validators_consult_default_fact_key_registry
+Restored exact source bytes, SHA-256: ff2234292cf9f94b0bbfe839721d4b77cb01989a69161e319f3e2930ab5591b7
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 2 items
+
+tests/test_fact_key_registry.py ..                                       [100%]
+
+============================== 2 passed in 0.10s ===============================
+
+Exit code: 0

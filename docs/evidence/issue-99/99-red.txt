@@ -1,0 +1,43 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-99-contract-audit
+configfile: pyproject.toml
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 5 items / 4 deselected / 1 selected
+
+tests/test_repo_hygiene.py F                                             [100%]
+
+=================================== FAILURES ===================================
+___________ test_packaged_contract_resources_have_audited_consumers ____________
+
+    def test_packaged_contract_resources_have_audited_consumers() -> None:
+        catalog = json.loads((REPO_ROOT / "docs/audits/contract-enforcement-catalog.json").read_text())
+        packaged = {
+            str(p.relative_to(REPO_ROOT))
+            for p in (REPO_ROOT / "src/manager_mosaic/schemas").glob("*.json")
+        }
+        packaged.add("src/manager_mosaic/fact_key_registry.json")
+        assert packaged == set(
+            catalog["resources"]
+        ), "New or missing packaged contract needs an audited consumer"
+        for path in packaged:
+            assert (REPO_ROOT / path).is_file()
+        for module, required_call in [
+            ("fact_keys", "load_fact_key_registry"),
+            ("evidence", "load_schema"),
+        ]:
+            tree = ast.parse((REPO_ROOT / f"src/manager_mosaic/{module}.py").read_text())
+            calls = {
+                node.func.id
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+            }
+>           assert required_call in calls, f"Orphaned contract consumer: {module}:{required_call}"
+E           AssertionError: Orphaned contract consumer: fact_keys:load_fact_key_registry
+E           assert 'load_fact_key_registry' in {'FactKeyViolation', 'Path', 'TypeError', 'UnregisteredFactKeyError', 'ValueError', '_as_records', ...}
+
+tests/test_repo_hygiene.py:96: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_repo_hygiene.py::test_packaged_contract_resources_have_audited_consumers
+======================= 1 failed, 4 deselected in 0.17s ========================
