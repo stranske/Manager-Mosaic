@@ -21,7 +21,7 @@ def load_evidence_schema() -> dict[str, Any]:
 
 
 def validate_evidence_object(payload: dict[str, Any]) -> list[str]:
-    """Return all schema violations for an evidence-object/v1 payload.
+    """Return all schema and document-identity violations for an evidence object.
 
     An empty list means the payload is valid. The ``excerpt`` key must be
     present even when its value is ``null``; a wholly absent key is rejected.

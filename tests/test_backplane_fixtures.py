@@ -9,6 +9,8 @@ from typing import Any
 import pytest
 from jsonschema import Draft202012Validator
 
+from manager_mosaic import validate_evidence_object
+
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures" / "backplane"
 SCHEMAS = ROOT / "docs" / "contracts" / "schemas"
@@ -76,14 +78,19 @@ def test_consumer_cli_validates_evidence_fixture(
     assert report["role"] == "consumer"
     assert report["skipped"] is False
     assert report["conformant"] is conformant
+    assert (validate_evidence_object(_fixture(filename)) == []) is conformant
     if not conformant:
         assert any("excerpt" in item["message"] for item in report["violations"])
 
 
-@pytest.mark.parametrize("defect", ["page", "date", "supersedes"])
-def test_package_and_standalone_identity_validation_agree(defect: str, tmp_path: Path) -> None:
-    from manager_mosaic import validate_evidence_object
-
+@pytest.mark.parametrize(
+    "defects",
+    [(), ("page",), ("date",), ("supersedes",), ("page", "date", "supersedes")],
+    ids=["valid", "page", "date", "supersedes", "combined"],
+)
+def test_package_and_standalone_identity_validation_agree(
+    defects: tuple[str, ...], tmp_path: Path
+) -> None:
     payload = _fixture("valid_evidence_object.json")
     payload["locator"] = {"page": 0}
     payload["document_ref"] = {
@@ -95,14 +102,17 @@ def test_package_and_standalone_identity_validation_agree(defect: str, tmp_path:
         "supersedes": "b" * 64,
         "supersession_evidence": {"mechanism": "owner_assertion", "detail": "Earlier bytes"},
     }
-    if defect == "page":
+    if "page" in defects:
         payload["document_ref"]["page"] = 7
-    elif defect == "date":
+    if "date" in defects:
         payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
-    else:
+    if "supersedes" in defects:
         payload["document_ref"]["supersedes"] = "a" * 64
+    # Each defect must exercise the semantic checks rather than schema rejection.
+    _validator().validate(payload)
     fixture = tmp_path / "identity.json"
     fixture.write_text(json.dumps(payload))
+    report_path = tmp_path / "report.json"
     result = subprocess.run(
         [
             sys.executable,
@@ -111,16 +121,15 @@ def test_package_and_standalone_identity_validation_agree(defect: str, tmp_path:
             str(fixture),
             "--schema-dir",
             str(SCHEMAS),
+            "--report-json",
+            str(report_path),
         ],
         capture_output=True,
         text=True,
         cwd=tmp_path,
     )
-    assert result.returncode == 1, result.stdout + result.stderr
-    marker = {
-        "page": "conflicts with locator.page",
-        "date": "ISO calendar date",
-        "supersedes": "earlier byte version",
-    }[defect]
-    assert marker in result.stdout + result.stderr
-    assert any(marker in v for v in validate_evidence_object(payload))
+    assert result.returncode == (1 if defects else 0), result.stdout + result.stderr
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    cli_violations = [item["message"] for item in report["violations"]]
+    assert len(cli_violations) == len(defects)
+    assert sorted(validate_evidence_object(payload)) == sorted(cli_violations)

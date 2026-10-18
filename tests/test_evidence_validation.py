@@ -147,6 +147,22 @@ def test_document_identity_rejects_individual_defects(defect: str, expected: str
     assert any(expected in v for v in validate_evidence_object(payload))
 
 
+def test_document_identity_combined_defects_returns_all_three_violations() -> None:
+    """Schema-valid fields can still violate all three identity relationships."""
+    payload = _identity_payload()
+    payload["document_ref"]["page"] = 7
+    payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+    payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+
+    assert sorted(validate_evidence_object(payload)) == sorted(
+        [
+            "document_ref.page conflicts with locator.page",
+            "document_ref.doc_key as_of must be an ISO calendar date or unknown",
+            "document_ref.supersedes must name an earlier byte version",
+        ]
+    )
+
+
 def test_document_identity_combined_defects_aggregate_with_schema_and_excerpt() -> None:
     payload = _identity_payload()
     payload["document_ref"]["page"] = 7
