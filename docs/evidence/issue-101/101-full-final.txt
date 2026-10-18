@@ -1,0 +1,43 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-101-provenance
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 128 items
+
+tests/test_backplane_fixtures.py ....                                    [  3%]
+tests/test_backplane_registry.py .                                       [  3%]
+tests/test_check_deliberate_break.py .                                   [  4%]
+tests/test_dependency_version_alignment.py .                             [  5%]
+tests/test_discrepancy_detection.py ..........                           [ 13%]
+tests/test_evidence_validation.py .......                                [ 18%]
+tests/test_fact_key_registry.py .....................                    [ 35%]
+tests/test_gate_commit_status_fork_tolerance.py ..............           [ 46%]
+tests/test_gate_project_dependencies.py ........                         [ 52%]
+tests/test_issues_txt_no_template_paths.py .                             [ 53%]
+tests/test_main.py ......                                                [ 57%]
+tests/test_model_validation.py .............................             [ 80%]
+tests/test_package_identity.py ..                                        [ 82%]
+tests/test_repo_hygiene.py ..                                            [ 83%]
+tests/test_repo_metadata.py ..                                           [ 85%]
+tests/test_thesis_monitoring.py ...................                      [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.12.2-final-0 _______________
+
+Name                                Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------
+src/manager_mosaic/__init__.py          9      0      0      0   100%
+src/manager_mosaic/discrepancy.py      82      1     28      1    98%   55
+src/manager_mosaic/evidence.py         14      0      4      0   100%
+src/manager_mosaic/fact_keys.py        88      1     32      1    98%   81
+src/manager_mosaic/model.py           215     16     58     11    89%   162, 227, 280, 296, 353-356, 365, 383, 409, 418, 425, 437, 444, 490
+src/manager_mosaic/periods.py          11      0      4      0   100%
+src/manager_mosaic/thesis.py           48      1     16      1    97%   94
+-------------------------------------------------------------------------------
+TOTAL                                 467     19    142     14    94%
+Coverage XML written to file coverage.xml
+Required test coverage of 80.0% reached. Total coverage: 93.92%
+============================= 128 passed in 1.75s ==============================

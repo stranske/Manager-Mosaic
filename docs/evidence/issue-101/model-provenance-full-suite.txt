@@ -1,0 +1,45 @@
+Command: python -m pytest -q -m "not slow"
+Exit: 0
+
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 131 items
+
+tests/test_backplane_fixtures.py ....                                    [  3%]
+tests/test_backplane_registry.py .                                       [  3%]
+tests/test_check_deliberate_break.py .                                   [  4%]
+tests/test_dependency_version_alignment.py .                             [  5%]
+tests/test_discrepancy_detection.py ..........                           [ 12%]
+tests/test_evidence_validation.py .......                                [ 18%]
+tests/test_fact_key_registry.py .....................                    [ 34%]
+tests/test_gate_commit_status_fork_tolerance.py ..............           [ 45%]
+tests/test_gate_project_dependencies.py ........                         [ 51%]
+tests/test_issues_txt_no_template_paths.py .                             [ 51%]
+tests/test_main.py ......                                                [ 56%]
+tests/test_model_validation.py ................................          [ 80%]
+tests/test_package_identity.py ..                                        [ 82%]
+tests/test_repo_hygiene.py ..                                            [ 83%]
+tests/test_repo_metadata.py ..                                           [ 85%]
+tests/test_thesis_monitoring.py ...................                      [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.8-final-0 ________________
+
+Name                                Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------
+src/manager_mosaic/__init__.py          9      0      0      0   100%
+src/manager_mosaic/discrepancy.py      70      1     24      1    98%   40
+src/manager_mosaic/evidence.py         14      0      4      0   100%
+src/manager_mosaic/fact_keys.py        88      1     32      1    98%   81
+src/manager_mosaic/model.py           229     16     62     11    89%   185, 250, 303, 319, 376-379, 388, 406, 432, 441, 448, 460, 467, 513
+src/manager_mosaic/periods.py          11      0      4      0   100%
+src/manager_mosaic/thesis.py           48      1     16      1    97%   94
+-------------------------------------------------------------------------------
+TOTAL                                 469     19    142     14    94%
+Coverage XML written to file coverage.xml
+Required test coverage of 80.0% reached. Total coverage: 93.94%
+============================= 131 passed in 1.31s ==============================

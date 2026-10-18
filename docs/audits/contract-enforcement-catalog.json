@@ -561,13 +561,13 @@
       "probe_name": "test_ensure_registered_fact_keys_returns_none_for_valid_and_exposes_all_violations"
     },
     {
-      "source": "src/manager_mosaic/discrepancy.py:FactRecord",
-      "classification": "confirmed-bug",
-      "rule": "Existing accepted101 owns caller-supplied basis propagation; verdict/threshold/latest-period rules pass existing tests.",
+      "source": "src/manager_mosaic/model.py:FactRecord",
+      "classification": "already-correct",
+      "rule": "Source101 places caller-supplied observed/inferred/unknown basis in the canonical model; the legacy discrepancy import remains an alias, unsupported bases reject, and existing numeric checks remain enforced.",
       "issues": [
         101
       ],
-      "probe": "tests/test_discrepancy_detection.py",
+      "probe": "tests/test_model_validation.py",
       "owner": "Manager-Mosaic",
       "core_functions": [
         "CF-3",
@@ -578,14 +578,16 @@
         "docs/contracts/mosaic-core-v1.md",
         "docs/contracts/tracked-variable-v1.md"
       ],
-      "probe_name": "test_non_finite_fact_value_rejected"
+      "probe_name": "test_model_fact_provenance_preserves_explicit_basis_and_legacy_import"
     },
     {
-      "source": "src/manager_mosaic/discrepancy.py:FactRecord.__post_init__",
+      "source": "src/manager_mosaic/model.py:FactRecord.__post_init__",
       "classification": "already-correct",
-      "rule": "Typed local values; explicit semantic validation where applicable.",
-      "issues": [],
-      "probe": "tests/test_discrepancy_detection.py",
+      "rule": "Source101 places caller-supplied observed/inferred/unknown basis in the canonical model; the legacy discrepancy import remains an alias, unsupported bases reject, and existing numeric checks remain enforced.",
+      "issues": [
+        101
+      ],
+      "probe": "tests/test_model_validation.py",
       "owner": "Manager-Mosaic",
       "core_functions": [
         "CF-3",
@@ -596,7 +598,7 @@
         "docs/contracts/mosaic-core-v1.md",
         "docs/contracts/tracked-variable-v1.md"
       ],
-      "probe_name": "test_non_finite_fact_value_rejected"
+      "probe_name": "test_fact_provenance_rejects_unsupported_basis"
     },
     {
       "source": "src/manager_mosaic/discrepancy.py:DiscrepancyRecord",

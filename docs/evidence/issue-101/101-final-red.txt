@@ -1,0 +1,177 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Manager-Mosaic-issue-101-provenance
+configfile: pyproject.toml
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 29 items / 24 deselected / 5 selected
+
+tests/test_model_validation.py FFFFF                                     [100%]
+
+=================================== FAILURES ===================================
+_ test_fact_provenance_survives_latest_thesis_and_discrepancy[observed-observed] _
+
+basis = 'observed', second_basis = 'observed'
+
+    @pytest.mark.parametrize(
+        "basis, second_basis",
+        [
+            ("observed", "observed"),
+            ("inferred", "inferred"),
+            ("observed", "inferred"),
+            ("unknown", "inferred"),
+        ],
+    )
+    def test_fact_provenance_survives_latest_thesis_and_discrepancy(
+        basis: Any, second_basis: Any
+    ) -> None:
+        from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        old = FactRecord("performance.irr", "fund:a", "2024Q4", 99.0, "old", "observed")
+        first = FactRecord("performance.irr", "fund:a", "2025Q1", 8.0, "repeated", basis)
+        second = FactRecord("performance.irr", "fund:a", "Q1 2025", 12.0, "repeated", second_basis)
+        facts = [old, first, second]
+        result = evaluate_claim(
+            ThesisClaim("c", "IRR", "fund:a", "performance.irr", "min", 10.0), facts
+        )
+        assert result.verdict == "at_risk"
+        assert result.evidence_ids == ("repeated",)  # Legacy API keeps its original deduplication.
+>       assert result.contributing_facts == (first, second)
+E       AssertionError: assert () == (FactRecord(f...s='observed'))
+E         
+E         Right contains 2 more items, first extra item: FactRecord(fact_key='performance.irr', entity_ref='fund:a', period='2025Q1', value=8.0, evidence_id='repeated', basis='observed')
+E         Use -v to get more diff
+
+tests/test_model_validation.py:267: AssertionError
+_ test_fact_provenance_survives_latest_thesis_and_discrepancy[inferred-inferred] _
+
+basis = 'inferred', second_basis = 'inferred'
+
+    @pytest.mark.parametrize(
+        "basis, second_basis",
+        [
+            ("observed", "observed"),
+            ("inferred", "inferred"),
+            ("observed", "inferred"),
+            ("unknown", "inferred"),
+        ],
+    )
+    def test_fact_provenance_survives_latest_thesis_and_discrepancy(
+        basis: Any, second_basis: Any
+    ) -> None:
+        from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        old = FactRecord("performance.irr", "fund:a", "2024Q4", 99.0, "old", "observed")
+        first = FactRecord("performance.irr", "fund:a", "2025Q1", 8.0, "repeated", basis)
+        second = FactRecord("performance.irr", "fund:a", "Q1 2025", 12.0, "repeated", second_basis)
+        facts = [old, first, second]
+        result = evaluate_claim(
+            ThesisClaim("c", "IRR", "fund:a", "performance.irr", "min", 10.0), facts
+        )
+        assert result.verdict == "at_risk"
+        assert result.evidence_ids == ("repeated",)  # Legacy API keeps its original deduplication.
+>       assert result.contributing_facts == (first, second)
+E       AssertionError: assert () == (FactRecord(f...s='inferred'))
+E         
+E         Right contains 2 more items, first extra item: FactRecord(fact_key='performance.irr', entity_ref='fund:a', period='2025Q1', value=8.0, evidence_id='repeated', basis='inferred')
+E         Use -v to get more diff
+
+tests/test_model_validation.py:267: AssertionError
+_ test_fact_provenance_survives_latest_thesis_and_discrepancy[observed-inferred] _
+
+basis = 'observed', second_basis = 'inferred'
+
+    @pytest.mark.parametrize(
+        "basis, second_basis",
+        [
+            ("observed", "observed"),
+            ("inferred", "inferred"),
+            ("observed", "inferred"),
+            ("unknown", "inferred"),
+        ],
+    )
+    def test_fact_provenance_survives_latest_thesis_and_discrepancy(
+        basis: Any, second_basis: Any
+    ) -> None:
+        from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        old = FactRecord("performance.irr", "fund:a", "2024Q4", 99.0, "old", "observed")
+        first = FactRecord("performance.irr", "fund:a", "2025Q1", 8.0, "repeated", basis)
+        second = FactRecord("performance.irr", "fund:a", "Q1 2025", 12.0, "repeated", second_basis)
+        facts = [old, first, second]
+        result = evaluate_claim(
+            ThesisClaim("c", "IRR", "fund:a", "performance.irr", "min", 10.0), facts
+        )
+        assert result.verdict == "at_risk"
+        assert result.evidence_ids == ("repeated",)  # Legacy API keeps its original deduplication.
+>       assert result.contributing_facts == (first, second)
+E       AssertionError: assert () == (FactRecord(f...s='inferred'))
+E         
+E         Right contains 2 more items, first extra item: FactRecord(fact_key='performance.irr', entity_ref='fund:a', period='2025Q1', value=8.0, evidence_id='repeated', basis='observed')
+E         Use -v to get more diff
+
+tests/test_model_validation.py:267: AssertionError
+_ test_fact_provenance_survives_latest_thesis_and_discrepancy[unknown-inferred] _
+
+basis = 'unknown', second_basis = 'inferred'
+
+    @pytest.mark.parametrize(
+        "basis, second_basis",
+        [
+            ("observed", "observed"),
+            ("inferred", "inferred"),
+            ("observed", "inferred"),
+            ("unknown", "inferred"),
+        ],
+    )
+    def test_fact_provenance_survives_latest_thesis_and_discrepancy(
+        basis: Any, second_basis: Any
+    ) -> None:
+        from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        old = FactRecord("performance.irr", "fund:a", "2024Q4", 99.0, "old", "observed")
+        first = FactRecord("performance.irr", "fund:a", "2025Q1", 8.0, "repeated", basis)
+        second = FactRecord("performance.irr", "fund:a", "Q1 2025", 12.0, "repeated", second_basis)
+        facts = [old, first, second]
+        result = evaluate_claim(
+            ThesisClaim("c", "IRR", "fund:a", "performance.irr", "min", 10.0), facts
+        )
+        assert result.verdict == "at_risk"
+        assert result.evidence_ids == ("repeated",)  # Legacy API keeps its original deduplication.
+>       assert result.contributing_facts == (first, second)
+E       AssertionError: assert () == (FactRecord(f...s='inferred'))
+E         
+E         Right contains 2 more items, first extra item: FactRecord(fact_key='performance.irr', entity_ref='fund:a', period='2025Q1', value=8.0, evidence_id='repeated', basis='unknown')
+E         Use -v to get more diff
+
+tests/test_model_validation.py:267: AssertionError
+_________ test_fact_provenance_legacy_constructor_defaults_to_unknown __________
+
+    def test_fact_provenance_legacy_constructor_defaults_to_unknown() -> None:
+        from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        first = FactRecord("metric", "entity", "2025Q1", 1.0, "a")
+        second = FactRecord("metric", "entity", "2025Q1", 2.0, "b")
+        assert first.basis == "unknown"
+>       assert {
+            f.basis for f in detect_numeric_discrepancies([first, second])[0].contributing_facts
+        } == {"unknown"}
+E       AssertionError: assert set() == {'unknown'}
+E         
+E         Extra items in the right set:
+E         'unknown'
+E         Use -v to get more diff
+
+tests/test_model_validation.py:287: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_fact_provenance_survives_latest_thesis_and_discrepancy[observed-observed]
+FAILED tests/test_model_validation.py::test_fact_provenance_survives_latest_thesis_and_discrepancy[inferred-inferred]
+FAILED tests/test_model_validation.py::test_fact_provenance_survives_latest_thesis_and_discrepancy[observed-inferred]
+FAILED tests/test_model_validation.py::test_fact_provenance_survives_latest_thesis_and_discrepancy[unknown-inferred]
+FAILED tests/test_model_validation.py::test_fact_provenance_legacy_constructor_defaults_to_unknown
+======================= 5 failed, 24 deselected in 0.26s =======================
