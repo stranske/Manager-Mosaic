@@ -1,0 +1,10 @@
+Deliberate break: removed 'inferred' from FACT_BASES in src/manager_mosaic/model.py
+so validation and the supported-basis list disconnect from FactBasis.
+Command: python -m pytest tests/test_model_validation.py::test_fact_bases_constant_is_the_validation_source tests/test_model_validation.py::test_thesis_provenance_accessors_only_include_latest_period_facts -q --no-cov -m 'not slow'
+FAILED tests/test_model_validation.py::test_fact_bases_constant_is_the_validation_source - assertion diff shows 'inferred' missing from FACT_BASES
+FAILED tests/test_model_validation.py::test_thesis_provenance_accessors_only_include_latest_period_facts - ValueError: unsupported fact basis: 'inferred'; expected one of 'observed', 'unknown'
+============================== 2 failed in 0.18s ==============================
+
+Restore: cp of the pre-break copy; sha256 d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd, cmp identical.
+Same command after restore:
+============================== 2 passed in 0.09s ===============================

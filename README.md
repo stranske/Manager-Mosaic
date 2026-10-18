@@ -40,9 +40,12 @@ all contributing fact/value/evidence/basis associations, including mixed bases a
 repeated evidence IDs, without changing evaluation policy. Both result types also
 expose `bases`, `evidence_bases`, and `value_bases` (the `(value, evidence_id,
 basis)` association per contributing fact) directly, and `FactRecord`/`FactBasis` are
-importable from the top-level `manager_mosaic` package. The product contract
-documents this caller boundary. Verified offline: 66 model tests, 103 focused
-model/discrepancy/thesis tests, and 228 full-suite tests passed. Temporarily erasing
+importable from the top-level `manager_mosaic` package. `FACT_BASES` is the
+canonical supported-basis tuple in `manager_mosaic.model` (also top-level);
+validation and its rejection message derive from it, and thesis provenance
+accessors include only latest-period facts. The product contract
+documents this caller boundary. Verified offline: 68 model tests, 105 focused
+model/discrepancy/thesis tests, and 230 full-suite tests passed. Temporarily erasing
 the caller's explicit basis in `model.py` failed the named regression; restoring
 the source passed. Commands and captured outcomes are in the
 [delivery evidence](docs/evidence/issue-101/README.md).

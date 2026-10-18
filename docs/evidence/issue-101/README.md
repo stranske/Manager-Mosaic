@@ -198,3 +198,29 @@ Observed this session:
   12 invalid-basis tests fail (`DID NOT RAISE ValueError`); byte-for-byte
   restore (`cmp` identical) made all 66 pass. See
   [model-provenance-invalid-basis-break.txt](model-provenance-invalid-basis-break.txt).
+
+## FACT_BASES source of truth and latest-period accessors (follow-up)
+
+`manager_mosaic.model.FACT_BASES` is now the canonical supported-basis tuple;
+`FactRecord` validation and its rejection message derive from it instead of a
+duplicated literal, and it is exported as `manager_mosaic.FACT_BASES`. New
+regressions in `tests/test_model_validation.py`:
+`test_fact_bases_constant_is_the_validation_source` and
+`test_thesis_provenance_accessors_only_include_latest_period_facts` (an older
+observed fact leaks no basis into a latest-period mixed inferred/observed check).
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — collected 68 tests,
+  **68 passed**; the process exits 1 only on the whole-package coverage gate
+  (73.24% < 80% for a single file), as in prior follow-ups. The full suite
+  below meets that gate.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q -m 'not slow'`
+  — **105 passed**, exit 0.
+- `python -m pytest -q -m 'not slow'` — **230 passed**, exit 0, coverage 97.70%.
+- Deliberate break: removing `'inferred'` from `FACT_BASES` in
+  `src/manager_mosaic/model.py` made both new regressions fail (exit 1);
+  restoring `model.py` byte-for-byte (`cmp` identical, sha256
+  `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made them
+  pass (exit 0). Both outputs are in
+  [model-provenance-fact-bases-break.txt](model-provenance-fact-bases-break.txt).

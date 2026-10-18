@@ -42,7 +42,9 @@ python3 -m pytest -q --no-cov tests/test_repo_hygiene.py::test_product_contract_
 ## Caller-supplied fact provenance
 
 Local `manager_mosaic.model.FactRecord(..., basis="observed" | "inferred" | "unknown")`
-preserves a caller's explicit basis. The existing import from
+preserves a caller's explicit basis. `manager_mosaic.model.FACT_BASES` (also
+exported as `manager_mosaic.FACT_BASES`) is the canonical supported-basis tuple
+that validation and its error message derive from. The existing import from
 `manager_mosaic.discrepancy` remains an alias of the same class. `observed` labels
 an observation supported directly by source evidence; `inferred` labels a derived
 assertion. `unknown` means the basis has not been established, not that a fact is

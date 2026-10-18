@@ -526,6 +526,35 @@ def test_fact_provenance_rejects_case_and_whitespace_variants(basis: Any) -> Non
         FactRecord("metric", "entity", "2025Q1", 1.0, "evidence", basis)  # type: ignore[arg-type]
 
 
+def test_fact_bases_constant_is_the_validation_source() -> None:
+    from manager_mosaic.model import FACT_BASES
+
+    assert FACT_BASES == ("observed", "inferred", "unknown")
+    assert manager_mosaic.FACT_BASES is FACT_BASES
+    assert "FACT_BASES" in manager_mosaic.__all__
+    for basis in FACT_BASES:
+        assert FactRecord("m", "e", "2025Q1", 1.0, "ev", basis=basis).basis == basis
+    with pytest.raises(
+        ValueError, match="unsupported fact basis.*'observed', 'inferred', 'unknown'"
+    ):
+        FactRecord("m", "e", "2025Q1", 1.0, "ev", basis="extracted")  # type: ignore[arg-type]
+
+
+def test_thesis_provenance_accessors_only_include_latest_period_facts() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    older_observed = FactRecord("metric", "entity", "2024Q4", 1.0, "old", basis="observed")
+    latest_inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+    latest_observed = FactRecord("metric", "entity", "2025Q1", 12.0, "shared", basis="observed")
+    check = evaluate_claim(claim, [older_observed, latest_observed, latest_inferred])
+    assert check.verdict == "at_risk"
+    # The older observed fact is superseded: no basis leaks in from 2024Q4.
+    assert check.bases == ("inferred", "observed")
+    assert check.evidence_bases == (("shared", "inferred"), ("shared", "observed"))
+    assert check.value_bases == ((8.0, "shared", "inferred"), (12.0, "shared", "observed"))
+
+
 def test_top_level_fact_provenance_exports_match_model() -> None:
     from manager_mosaic.model import FactBasis as ModelFactBasis
     from manager_mosaic.model import FactRecord as ModelFactRecord
