@@ -78,3 +78,49 @@ def test_consumer_cli_validates_evidence_fixture(
     assert report["conformant"] is conformant
     if not conformant:
         assert any("excerpt" in item["message"] for item in report["violations"])
+
+
+@pytest.mark.parametrize("defect", ["page", "date", "supersedes"])
+def test_package_and_standalone_identity_validation_agree(defect: str, tmp_path: Path) -> None:
+    from manager_mosaic import validate_evidence_object
+
+    payload = _fixture("valid_evidence_object.json")
+    payload["locator"] = {"page": 0}
+    payload["document_ref"] = {
+        "sha256": "a" * 64,
+        "doc_key": "manager:demo/manager_letter/2024-02-29",
+        "doc_type": "manager_letter",
+        "page": 0,
+        "text_basis": "native",
+        "supersedes": "b" * 64,
+        "supersession_evidence": {"mechanism": "owner_assertion", "detail": "Earlier bytes"},
+    }
+    if defect == "page":
+        payload["document_ref"]["page"] = 7
+    elif defect == "date":
+        payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+    else:
+        payload["document_ref"]["supersedes"] = "a" * 64
+    fixture = tmp_path / "identity.json"
+    fixture.write_text(json.dumps(payload))
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/validate_run_contract.py"),
+            "--evidence-objects",
+            str(fixture),
+            "--schema-dir",
+            str(SCHEMAS),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+    marker = {
+        "page": "conflicts with locator.page",
+        "date": "ISO calendar date",
+        "supersedes": "earlier byte version",
+    }[defect]
+    assert marker in result.stdout + result.stderr
+    assert any(marker in v for v in validate_evidence_object(payload))

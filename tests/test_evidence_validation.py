@@ -5,6 +5,9 @@ from __future__ import annotations
 import json
 from importlib import resources
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 from manager_mosaic import validate_evidence_object
 from manager_mosaic.evidence import load_evidence_schema
@@ -106,3 +109,82 @@ def test_packaged_evidence_schema_matches_published_contract() -> None:
     assert json.loads(packaged.read_text(encoding="utf-8")) == json.loads(
         published.read_text(encoding="utf-8")
     )
+
+
+def _identity_payload() -> dict[str, Any]:
+    payload: dict[str, Any] = json.loads(
+        (Path(__file__).parent / "fixtures/backplane/valid_evidence_object.json").read_text()
+    )
+    payload["locator"] = {"page": 0}
+    payload["document_ref"] = {
+        "sha256": "a" * 64,
+        "doc_key": "manager:demo/manager_letter/2024-02-29",
+        "doc_type": "manager_letter",
+        "page": 0,
+        "text_basis": "native",
+        "supersedes": "b" * 64,
+        "supersession_evidence": {"mechanism": "owner_assertion", "detail": "Earlier bytes"},
+    }
+    return payload
+
+
+@pytest.mark.parametrize(
+    "defect, expected",
+    [
+        ("page", "conflicts with locator.page"),
+        ("date", "ISO calendar date"),
+        ("supersedes", "earlier byte version"),
+    ],
+)
+def test_document_identity_rejects_individual_defects(defect: str, expected: str) -> None:
+    payload = _identity_payload()
+    if defect == "page":
+        payload["document_ref"]["page"] = 7
+    elif defect == "date":
+        payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+    else:
+        payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+    assert any(expected in v for v in validate_evidence_object(payload))
+
+
+def test_document_identity_combined_defects_aggregate_with_schema_and_excerpt() -> None:
+    payload = _identity_payload()
+    payload["document_ref"]["page"] = 7
+    payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/2025-02-31"
+    payload["document_ref"]["supersedes"] = payload["document_ref"]["sha256"]
+    del payload["excerpt"]
+    payload["method"] = "telepathy"
+    violations = validate_evidence_object(payload)
+    for marker in [
+        "conflicts with locator.page",
+        "ISO calendar date",
+        "earlier byte version",
+        "excerpt",
+        "telepathy",
+    ]:
+        assert any(marker in v for v in violations)
+
+
+@pytest.mark.parametrize("as_of", ["2024-02-29", "unknown", "2025-01-01"])
+def test_document_identity_accepts_matching_zero_page_and_valid_dates(as_of: str) -> None:
+    payload = _identity_payload()
+    payload["document_ref"]["doc_key"] = f"manager:demo/manager_letter/{as_of}"
+    assert validate_evidence_object(payload) == []
+
+
+@pytest.mark.parametrize(
+    "field, value",
+    [("document_ref", None), ("document_ref", []), ("locator", 1), ("locator", None)],
+)
+def test_document_identity_bad_container_types_are_reported_without_crashing(
+    field: str, value: Any
+) -> None:
+    payload = _identity_payload()
+    payload[field] = value
+    assert validate_evidence_object(payload)
+
+
+def test_document_identity_rejects_noncanonical_date() -> None:
+    payload = _identity_payload()
+    payload["document_ref"]["doc_key"] = "manager:demo/manager_letter/20240229"
+    assert any("ISO calendar date" in v for v in validate_evidence_object(payload))

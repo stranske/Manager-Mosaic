@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 from jsonschema import Draft202012Validator
@@ -34,4 +35,36 @@ def validate_evidence_object(payload: dict[str, Any]) -> list[str]:
     validator = Draft202012Validator(load_evidence_schema())
     for error in sorted(validator.iter_errors(payload), key=lambda item: list(item.path)):
         violations.append(error.message)
+    violations.extend(_check_document_identity(payload))
+    return violations
+
+
+def _check_document_identity(payload: dict[str, Any]) -> list[str]:
+    """Check identity relationships beyond the individual schema fields."""
+    document = payload.get("document_ref")
+    if not isinstance(document, dict):
+        return []
+    violations = []
+    locator = payload.get("locator")
+    if (
+        isinstance(locator, dict)
+        and "page" in document
+        and "page" in locator
+        and document["page"] != locator["page"]
+    ):
+        violations.append("document_ref.page conflicts with locator.page")
+    key = document.get("doc_key")
+    if isinstance(key, str):
+        as_of = key.rsplit("/", 1)[-1]
+        if as_of != "unknown":
+            try:
+                if date.fromisoformat(as_of).isoformat() != as_of:
+                    raise ValueError("non-canonical date")
+            except ValueError:
+                violations.append(
+                    "document_ref.doc_key as_of must be an ISO calendar date or unknown"
+                )
+    supersedes = document.get("supersedes")
+    if isinstance(supersedes, str) and supersedes == document.get("sha256"):
+        violations.append("document_ref.supersedes must name an earlier byte version")
     return violations
