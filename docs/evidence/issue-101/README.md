@@ -151,3 +151,32 @@ Observed this session:
   restoring `model.py` byte-for-byte (`sha256sum -c` OK, `cmp` identical)
   made it pass (exit 0). Both outputs are in
   [model-provenance-value-bases-break.txt](model-provenance-value-bases-break.txt).
+
+## Inferred-only discrepancy and legacy value_bases (follow-up)
+
+New regression `test_result_value_bases_inferred_only_discrepancy_and_legacy_results`
+in `tests/test_model_validation.py` covers the accessor combinations not
+previously asserted directly: an inferred-only `DiscrepancyRecord`
+(`bases`/`evidence_bases`/`value_bases` all inferred, repeated evidence ID
+retained), a legacy thesis fact staying `unknown` in `value_bases`, and legacy
+discrepancy facts staying `unknown` in `value_bases` with a repeated evidence
+ID retained twice.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — collected 59 tests,
+  **59 passed**; the process exits 1 only on the whole-package coverage gate
+  (73.21% < 80% when a single test file runs against all of `src/`). The full
+  suite below meets that gate.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q -m 'not slow'`
+  — **96 passed**, exit 0.
+- `python -m pytest -q -m 'not slow'` — **221 passed**, exit 0, coverage 97.70%.
+- `BLACK_CACHE_DIR=/tmp/mm-black-cache BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .`
+  — passed, **102 files unchanged**, exit 0 (single-worker/cache env only
+  avoids the sandbox socket restriction on Black's process runner).
+- Deliberate break: forcing `basis` to `unknown` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `('unknown', 'unknown') == ('inferred', 'inferred')` (exit 1); restoring
+  `model.py` byte-for-byte (`sha256sum -c` OK, `cmp` identical) made it pass
+  (exit 0). Both outputs are in
+  [model-provenance-value-bases-inferred-legacy-break.txt](model-provenance-value-bases-inferred-legacy-break.txt).
