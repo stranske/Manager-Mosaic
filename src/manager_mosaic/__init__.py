@@ -13,6 +13,8 @@ from manager_mosaic.fact_keys import (
 from manager_mosaic.model import (
     Document,
     Entry,
+    FactBasis,
+    FactRecord,
     Fund,
     Gap,
     Mention,
@@ -39,6 +41,8 @@ __version__ = "0.1.0"
 __all__ = [
     "Document",
     "Entry",
+    "FactBasis",
+    "FactRecord",
     "Fund",
     "Gap",
     "Mention",

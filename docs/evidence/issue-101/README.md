@@ -60,6 +60,25 @@ The unchanged named model regression fails with `'unknown' == 'inferred'`
 [Both command outputs](model-provenance-deliberate-break.txt) are retained.
 The temporary mutation is absent from the delivered source.
 
+## Direct result provenance accessors (follow-up)
+
+`DiscrepancyRecord` and `ThesisCheck` now also expose `bases` and
+`evidence_bases` derived from `contributing_facts` (no deduplication of
+repeated evidence IDs; legacy constructors leave them empty), and
+`FactRecord`/`FactBasis` are importable from the top-level `manager_mosaic`
+package. New regressions in `tests/test_model_validation.py`:
+`test_result_provenance_accessors_expose_inferred_only_and_mixed_bases`,
+`test_result_provenance_accessors_keep_legacy_facts_unknown`, and
+`test_top_level_fact_provenance_exports_match_model`.
+Observed this session: `python -m pytest tests/test_model_validation.py -q`
+collected 56 tests, all passed (whole-package coverage gate is only met by
+the full suite); focused model/discrepancy/thesis run passed 93 tests;
+full suite passed 218 tests. Deliberate break: forcing `basis` to
+`unknown` in `src/manager_mosaic/model.py` made the named accessor
+regression fail with `('unknown',) == ('inferred',)` (exit 1); restoring
+`model.py` byte-for-byte made it pass (exit 0). Both outputs are in
+[model-provenance-accessors-break.txt](model-provenance-accessors-break.txt).
+
 Mention boolean validation belongs to the merged store-validation candidate.
 This scope adds no extraction adapter, hosting layer, evidence-method mapping,
 or shared interchange schema changes. The original implementation's historical

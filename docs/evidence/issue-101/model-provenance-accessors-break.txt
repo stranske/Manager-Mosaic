@@ -1,0 +1,54 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py F                                         [100%]
+
+=================================== FAILURES ===================================
+____ test_result_provenance_accessors_expose_inferred_only_and_mixed_bases _____
+
+    def test_result_provenance_accessors_expose_inferred_only_and_mixed_bases() -> None:
+        from manager_mosaic.discrepancy import detect_numeric_discrepancies
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+        inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", basis="inferred")
+        inferred_only = evaluate_claim(claim, [inferred])
+>       assert inferred_only.bases == ("inferred",)
+E       AssertionError: assert ('unknown',) == ('inferred',)
+E         
+E         At index 0 diff: 'unknown' != 'inferred'
+E         
+E         Full diff:
+E           (
+E         -     'inferred',
+E         +     'unknown',
+E           )
+
+tests/test_model_validation.py:379: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_result_provenance_accessors_expose_inferred_only_and_mixed_bases - AssertionError: assert ('unknown',) == ('inferred',)
+  
+  At index 0 diff: 'unknown' != 'inferred'
+  
+  Full diff:
+    (
+  -     'inferred',
+  +     'unknown',
+    )
+============================== 1 failed in 0.14s ===============================
+RED_EXIT:1
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.09s ===============================
+GREEN_EXIT:0

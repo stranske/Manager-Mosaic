@@ -28,6 +28,16 @@ class DiscrepancyRecord:
     kind: Literal["numeric_delta"]
     contributing_facts: tuple[FactRecord, ...] = ()
 
+    @property
+    def bases(self) -> tuple[FactBasis, ...]:
+        """Basis of each contributing fact, aligned with ``contributing_facts``."""
+        return tuple(fact.basis for fact in self.contributing_facts)
+
+    @property
+    def evidence_bases(self) -> tuple[tuple[str, FactBasis], ...]:
+        """``(evidence_id, basis)`` per contributing fact, preserving repeats."""
+        return tuple((fact.evidence_id, fact.basis) for fact in self.contributing_facts)
+
 
 def _discrepancy_id(fact_key: str, entity_ref: str, period: PeriodGroupKey) -> str:
     """Return an injective ID for the canonical (fact_key, entity_ref, period) tuple."""
