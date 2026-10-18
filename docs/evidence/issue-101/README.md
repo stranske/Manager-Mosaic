@@ -244,3 +244,29 @@ Observed this session:
   `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`) made it
   pass. See
   [model-provenance-explicit-unknown-break.txt](model-provenance-explicit-unknown-break.txt).
+
+## Non-string invalid-basis rejection (follow-up)
+
+New regression `test_fact_provenance_rejects_nonstring_basis_values` in
+`tests/test_model_validation.py` covers non-string bases not previously
+asserted directly (`1`, `1.5`, `b"observed"`, `("observed",)`, `["observed"]`)
+on both the canonical `manager_mosaic.model.FactRecord` and the legacy
+`manager_mosaic.discrepancy.FactRecord` import: each is rejected with
+`unsupported fact basis ... 'observed', 'inferred', 'unknown'`, with no
+coercion of bytes or sequence-wrapped values.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q` — **74 passed**
+  (single-file coverage gate 73.24% < 80% exits 1 as before; full suite below).
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py --no-cov -q -m 'not slow'`
+  — **111 passed**, exit 0.
+- `python -m pytest -q -m 'not slow'` — **236 passed**, exit 0, coverage 97.70%.
+- `BLACK_CACHE_DIR=/tmp/mm-black-cache BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .`
+  — passed, **102 files unchanged**, exit 0.
+- Deliberate break: replacing the `if self.basis not in FACT_BASES:` guard in
+  `src/manager_mosaic/model.py` with `if False:` made all 5 new cases fail
+  with `DID NOT RAISE ValueError`; byte-for-byte restore (`cmp` identical,
+  sha256 `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`)
+  made them pass (5 passed). See
+  [model-provenance-nonstring-basis-break.txt](model-provenance-nonstring-basis-break.txt).

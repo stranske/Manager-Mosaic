@@ -44,8 +44,8 @@ importable from the top-level `manager_mosaic` package. `FACT_BASES` is the
 canonical supported-basis tuple in `manager_mosaic.model` (also top-level);
 validation and its rejection message derive from it, and thesis provenance
 accessors include only latest-period facts. The product contract
-documents this caller boundary. Verified offline: 68 model tests, 105 focused
-model/discrepancy/thesis tests, and 230 full-suite tests passed. Temporarily erasing
+documents this caller boundary. Verified offline: 74 model tests, 111 focused
+model/discrepancy/thesis tests, and 236 full-suite tests passed. Temporarily erasing
 the caller's explicit basis in `model.py` failed the named regression; restoring
 the source passed. Commands and captured outcomes are in the
 [delivery evidence](docs/evidence/issue-101/README.md).

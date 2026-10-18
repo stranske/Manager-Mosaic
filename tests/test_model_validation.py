@@ -526,6 +526,20 @@ def test_fact_provenance_rejects_case_and_whitespace_variants(basis: Any) -> Non
         FactRecord("metric", "entity", "2025Q1", 1.0, "evidence", basis)  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("basis", [1, 1.5, b"observed", ("observed",), ["observed"]])
+def test_fact_provenance_rejects_nonstring_basis_values(basis: Any) -> None:
+    # Basis is a closed string vocabulary: truthy non-strings that merely look
+    # like a basis (bytes, a one-tuple/list wrapping one) must not be coerced
+    # or accepted, on either the canonical or the legacy import path.
+    from manager_mosaic.discrepancy import FactRecord as LegacyFactRecord
+
+    for constructor in (FactRecord, LegacyFactRecord):
+        with pytest.raises(
+            ValueError, match="unsupported fact basis.*'observed', 'inferred', 'unknown'"
+        ):
+            constructor("metric", "entity", "2025Q1", 1.0, "evidence", basis)
+
+
 def test_fact_bases_constant_is_the_validation_source() -> None:
     from manager_mosaic.model import FACT_BASES
 
