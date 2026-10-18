@@ -1,5 +1,14 @@
 # Raw store validation evidence
 
+- [x] `rg -n "validate_payload" src/manager_mosaic/__init__.py docs/PRODUCT_CONTRACT.md`
+  confirms the import, `__all__` export, and CF-1 documentation reference.
+
+The public API follow-up checks the declared export and reports missing `inferred`
+and an unknown period together through `manager_mosaic.validate_payload`.
+Removing the export from `__all__` in memory makes the strengthened regression fail;
+the unchanged package passes all 21 payload cases and all 160 suite tests with
+97.34% coverage (`-m "not slow"`).
+
 Follow-up verification adds seven regression cases for validating every entry before
 construction and preserving unknown-period diagnostics when currency fields have
 non-string values. All 159 tests pass at 97.34% coverage. The required payload

@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 from jsonschema import Draft202012Validator
 
+import manager_mosaic
 from manager_mosaic.model import (
     Store,
     derive_gaps,
@@ -367,6 +368,22 @@ def test_payload_wrong_collection_types_do_not_abort_other_checks(collection: An
 def test_payload_valid_and_public_entrypoint() -> None:
     from manager_mosaic import validate_payload as public_validate
 
+    assert "validate_payload" in manager_mosaic.__all__
+    assert public_validate is validate_payload
     payload = json.loads((FIXTURES / "minimal_store.json").read_text())
     assert public_validate(payload) == []
     assert validate(Store.from_dict(payload)) == []
+
+
+def test_payload_public_entrypoint_reports_structural_and_semantic_defects() -> None:
+    payload = json.loads((FIXTURES / "minimal_store.json").read_text(encoding="utf-8"))
+    del payload["entries"][0]["mentions"][0]["inferred"]
+    payload["entries"][0]["first"] = "unknown-period"
+
+    violations = manager_mosaic.validate_payload(payload)
+
+    assert all(isinstance(item, manager_mosaic.ValidationViolation) for item in violations)
+    assert {item.record_id for item in violations} == {
+        "$.entries[0].mentions[0].inferred",
+        "$.entries[0].first",
+    }
