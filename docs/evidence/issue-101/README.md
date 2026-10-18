@@ -270,3 +270,27 @@ Observed this session:
   sha256 `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`)
   made them pass (5 passed). See
   [model-provenance-nonstring-basis-break.txt](model-provenance-nonstring-basis-break.txt).
+
+## Exact-duplicate discrepancy accessor provenance (follow-up)
+
+New regression `test_discrepancy_accessors_retain_exact_duplicate_fact_provenance`
+in `tests/test_model_validation.py` covers the one accessor combination not
+previously asserted directly on `DiscrepancyRecord`: an exact duplicate
+inferred fact (same value, evidence ID, and basis, listed twice) alongside
+observed and legacy-unknown facts sharing one evidence ID. It asserts
+`contributing_facts`, `bases`, `evidence_bases`, and `value_bases` each retain
+all four associations in order, so provenance is not lost by deduplication.
+
+Observed this session:
+
+- `python -m pytest tests/test_model_validation.py -q --no-cov -m "not slow"` — **75 passed**, exit 0.
+- `python -m pytest tests/test_model_validation.py tests/test_discrepancy_detection.py tests/test_thesis_monitoring.py -q --no-cov -m "not slow"` — **112 passed**, exit 0.
+- `python -m pytest -q -m "not slow"` — **237 passed**, exit 0, coverage 97.70%.
+- `BLACK_CACHE_DIR=/tmp/mm-black-cache BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — passed, **102 files unchanged**, exit 0.
+- Deliberate break: forcing `basis` to `unknown` in
+  `src/manager_mosaic/model.py` made the new regression fail with
+  `('unknown', 'unknown', 'unknown', 'unknown') != ('observed', 'inferred', 'unknown', 'inferred')`
+  (exit 1); restoring `model.py` byte-for-byte (`cmp` identical, sha256
+  `d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd`)
+  made it pass (exit 0). See
+  [model-provenance-duplicate-discrepancy-break.txt](model-provenance-duplicate-discrepancy-break.txt).

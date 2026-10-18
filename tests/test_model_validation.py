@@ -353,6 +353,32 @@ def test_fact_provenance_keeps_equal_values_and_duplicate_associations() -> None
     assert evaluate_claim(claim, facts[::-1]).contributing_facts == check.contributing_facts
 
 
+def test_discrepancy_accessors_retain_exact_duplicate_fact_provenance() -> None:
+    from manager_mosaic.discrepancy import detect_numeric_discrepancies
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "inferred")
+    unknown = FactRecord("metric", "entity", "2025Q1", 12.0, "shared")
+    # The second `inferred` entry is an exact duplicate of the first: every
+    # accessor must retain it as its own association, not deduplicate it away.
+    facts = [observed, inferred, unknown, inferred]
+    discrepancy = detect_numeric_discrepancies(facts)[0]
+    assert discrepancy.contributing_facts == tuple(facts)
+    assert discrepancy.bases == ("observed", "inferred", "unknown", "inferred")
+    assert discrepancy.evidence_bases == (
+        ("shared", "observed"),
+        ("shared", "inferred"),
+        ("shared", "unknown"),
+        ("shared", "inferred"),
+    )
+    assert discrepancy.value_bases == (
+        (8.0, "shared", "observed"),
+        (8.0, "shared", "inferred"),
+        (12.0, "shared", "unknown"),
+        (8.0, "shared", "inferred"),
+    )
+
+
 def test_fact_provenance_preserves_legacy_result_constructors() -> None:
     from manager_mosaic.discrepancy import DiscrepancyRecord
     from manager_mosaic.thesis import ThesisCheck
