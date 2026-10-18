@@ -1,0 +1,78 @@
+Deliberate-break gate: test_thesis_accessors_retain_exact_duplicate_fact_provenance
+
+Mutation: in FactRecord.__post_init__ (src/manager_mosaic/model.py), insert object.__setattr__(self, "basis", "unknown") before the FACT_BASES guard, erasing the caller-supplied basis.
+
+== Broken run (exit 1) ==
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py F                                         [100%]
+
+=================================== FAILURES ===================================
+_________ test_thesis_accessors_retain_exact_duplicate_fact_provenance _________
+
+    def test_thesis_accessors_retain_exact_duplicate_fact_provenance() -> None:
+        from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+    
+        observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+        inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "inferred")
+        unknown = FactRecord("metric", "entity", "2025Q1", 12.0, "shared")
+        # The second `inferred` entry is an exact duplicate of the first: every
+        # thesis accessor must retain it as its own association, in the sorted
+        # contributing-facts order, not deduplicate it away.
+        facts = [observed, inferred, unknown, inferred]
+        claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+        check = evaluate_claim(claim, facts)
+        assert check.verdict == "at_risk"
+        assert check.evidence_ids == ("shared",)
+>       assert check.bases == ("inferred", "inferred", "observed", "unknown")
+E       AssertionError: assert ('unknown', '...n', 'unknown') == ('inferred', ...d', 'unknown')
+E         
+E         At index 0 diff: 'unknown' != 'inferred'
+E         
+E         Full diff:
+E           (
+E         -     'inferred',
+E         -     'inferred',
+E         -     'observed',
+E         +     'unknown',
+E         +     'unknown',
+E         +     'unknown',
+E               'unknown',
+E           )
+
+tests/test_model_validation.py:396: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_model_validation.py::test_thesis_accessors_retain_exact_duplicate_fact_provenance - AssertionError: assert ('unknown', '...n', 'unknown') == ('inferred', ...d', 'unknown')
+  
+  At index 0 diff: 'unknown' != 'inferred'
+  
+  Full diff:
+    (
+  -     'inferred',
+  -     'inferred',
+  -     'observed',
+  +     'unknown',
+  +     'unknown',
+  +     'unknown',
+        'unknown',
+    )
+============================== 1 failed in 0.09s ===============================
+
+== Restored run (exit 0) ==
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.11, platformdirs-4.13.4, cov-7.1.0, anyio-4.15.1
+collected 1 item
+
+tests/test_model_validation.py .                                         [100%]
+
+============================== 1 passed in 0.05s ===============================
+
+Restore: cmp src/manager_mosaic/model.py backup identical; sha256 d15539bad40c28f79a71d372d06455a0c11ce87a15656ea8b0cc3453413fb9cd

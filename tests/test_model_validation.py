@@ -379,6 +379,38 @@ def test_discrepancy_accessors_retain_exact_duplicate_fact_provenance() -> None:
     )
 
 
+def test_thesis_accessors_retain_exact_duplicate_fact_provenance() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "observed")
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "shared", "inferred")
+    unknown = FactRecord("metric", "entity", "2025Q1", 12.0, "shared")
+    # The second `inferred` entry is an exact duplicate of the first: every
+    # thesis accessor must retain it as its own association, in the sorted
+    # contributing-facts order, not deduplicate it away.
+    facts = [observed, inferred, unknown, inferred]
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    check = evaluate_claim(claim, facts)
+    assert check.verdict == "at_risk"
+    assert check.evidence_ids == ("shared",)
+    assert check.bases == ("inferred", "inferred", "observed", "unknown")
+    assert check.evidence_bases == (
+        ("shared", "inferred"),
+        ("shared", "inferred"),
+        ("shared", "observed"),
+        ("shared", "unknown"),
+    )
+    assert check.value_bases == (
+        (8.0, "shared", "inferred"),
+        (8.0, "shared", "inferred"),
+        (8.0, "shared", "observed"),
+        (12.0, "shared", "unknown"),
+    )
+    reversed_check = evaluate_claim(claim, facts[::-1])
+    assert reversed_check.bases == check.bases
+    assert reversed_check.value_bases == check.value_bases
+
+
 def test_fact_provenance_preserves_legacy_result_constructors() -> None:
     from manager_mosaic.discrepancy import DiscrepancyRecord
     from manager_mosaic.thesis import ThesisCheck
