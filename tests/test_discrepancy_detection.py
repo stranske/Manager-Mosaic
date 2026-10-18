@@ -156,13 +156,32 @@ def test_discrepancy_id_and_display_are_permutation_stable() -> None:
         }
 
 
+@pytest.mark.parametrize("period", ["2025Q1", "2025-Q1", "Q1 2025", " 2025q1 ", "q1 2025"])
+def test_discrepancy_id_is_independent_of_aliases_present(period: str) -> None:
+    # A source can change its period spelling between runs without changing identity.
+    facts = [
+        FactRecord("performance.irr", "fund:alpha", period, 8.0, "ev-a"),
+        FactRecord("performance.irr", "fund:alpha", period, 12.0, "ev-b"),
+    ]
+
+    discrepancies = detect_numeric_discrepancies(facts)
+
+    assert len(discrepancies) == 1
+    assert discrepancies[0].discrepancy_id == '["performance.irr","fund:alpha",["quarter",2025,1]]'
+    assert discrepancies[0].period == period
+
+
 def test_discrepancy_canonical_identity_keeps_distinct_dimensions() -> None:
     identities = [
         ("metric", "fund:a", "2025Q1"),
         ("other", "fund:a", "2025Q1"),
         ("metric", "fund:b", "2025Q1"),
         ("metric", "fund:a", "2025Q2"),
+        ("metric", "fund:a", "2026Q1"),
+        ("metric", "fund:a", "2025 Q1"),
+        ("metric", "fund:a", '["quarter",2025,1]'),
         ("metric", "fund:a", "FY2025"),
+        ("metric", "fund:a", "FY2025 "),
         ("metric", "fund:a", "FY 2025"),
     ]
     records = [
