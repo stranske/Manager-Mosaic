@@ -48,3 +48,5 @@ Current raw proof (commands and exit codes are included):
 - [Repository Black gate](96-current-black.txt)
 
 Black's default workers cannot start inside this sandbox. Each of the 100 included Python files passed an individual check with a writable cache directory; the required repository-wide command then passed using that cache and `BLACK_NUM_WORKERS=1`. The original evidence logs are retained alongside these current results.
+
+Serial opener review recovery after native1464b619: all4 native implementation/push attempts directlyterminal, exclusive source96/PR111 claims and temporary future-start pause. Preserved every native test/evidence addition. Schema objects now accept Mapping including nested MappingProxyType; unusable period/document collections suppress only dependent references; four non-Mapping top-level cases produce diagnostics and aggregated ValueError. All5 unchanged Mapping/document-collection regressions fail on native production, exact restoration GREEN. Final169fullPASS/97.64percentcoverage; focused mypy/Black/Ruff/diffPASS.

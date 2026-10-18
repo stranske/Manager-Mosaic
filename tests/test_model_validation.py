@@ -360,9 +360,11 @@ def test_payload_wrong_collection_types_do_not_abort_other_checks(collection: An
     payload = json.loads((FIXTURES / "minimal_store.json").read_text())
     payload["periods"] = collection
     payload["entries"][0]["first"] = "unknown"
+    payload["entries"][0]["flag"] = "$B"
     violations = validate_payload(payload)
     assert any(v.record_id.startswith("$.periods") for v in violations)
-    assert any(v.record_id == "$.entries[0].first" for v in violations)
+    assert not any("referenced but not defined" in v.message for v in violations)
+    assert any(v.record_id == "$.entries[0].flag" for v in violations)
 
 
 def test_payload_valid_and_public_entrypoint() -> None:

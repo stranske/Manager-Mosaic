@@ -6,6 +6,7 @@ import json
 import math
 from copy import deepcopy
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 import pytest
@@ -140,3 +141,31 @@ def test_bad_sort_skips_only_range_check(payload: dict[str, Any]) -> None:
     assert any(v.record_id == "$.periods[0].sort" for v in violations)
     assert any(v.record_id == "$.entries[0].status" for v in violations)
     assert all("after last period" not in v.message for v in violations)
+
+
+@pytest.mark.parametrize("bad", [None, [], "text", 3])
+def test_non_mapping_payload_is_reported(bad: Any) -> None:
+    assert validate_payload(bad)
+    with pytest.raises(ValueError):
+        Store.from_dict(bad)
+
+
+def test_read_only_mapping_payload_preserves_input_contract(payload: dict[str, Any]) -> None:
+    payload["entries"][0]["pub"] = MappingProxyType(payload["entries"][0]["pub"])
+    readonly = MappingProxyType(payload)
+    assert validate_payload(readonly) == []
+    assert validate(Store.from_dict(readonly)) == []
+
+
+@pytest.mark.parametrize("bad", [None, 3, [None], [{"name": []}]])
+def test_unusable_documents_skip_only_dependent_references(
+    payload: dict[str, Any], bad: Any
+) -> None:
+    payload["documents"] = bad
+    payload["entries"][0]["first"] = "unknown-period"
+    violations = validate_payload(payload)
+    assert any(v.record_id.startswith("$.documents") for v in violations)
+    assert any(v.record_id == "$.entries[0].first" for v in violations)
+    assert not any(
+        "document " in v.message and "referenced but not defined" in v.message for v in violations
+    )

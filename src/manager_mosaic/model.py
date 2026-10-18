@@ -16,7 +16,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, validators
 
 PUB_STATES = frozenset({"PENDING", "COMPLETED", "TERMINATED"})
 _TRUNCATED_CURRENCY = re.compile(r"^[$€£¥][A-Za-z]+$")
@@ -522,7 +522,13 @@ def _payload_path(parts: Sequence[str | int]) -> str:
 
 def _payload_structure_violations(payload: Mapping[str, Any]) -> list[ValidationViolation]:
     violations = []
-    for error in Draft202012Validator(load_schema()).iter_errors(payload):
+    validator_type = validators.extend(
+        Draft202012Validator,
+        type_checker=Draft202012Validator.TYPE_CHECKER.redefine(
+            "object", lambda checker, value: isinstance(value, Mapping)
+        ),
+    )
+    for error in validator_type(load_schema()).iter_errors(payload):
         path = list(error.absolute_path)
         if error.validator == "required" and isinstance(error.instance, Mapping):
             missing = [key for key in error.validator_value if key not in error.instance]
@@ -559,9 +565,18 @@ def validate_payload(payload: Mapping[str, Any]) -> list[ValidationViolation]:
     periods = {
         item["id"]: item for _, item in records("periods") if isinstance(item.get("id"), str)
     }
-    documents = {
-        item["name"] for _, item in records("documents") if isinstance(item.get("name"), str)
-    }
+
+    def reference_ids(key: str, field: str) -> set[str] | None:
+        collection = payload.get(key, [])
+        if not isinstance(collection, list) or any(
+            not isinstance(item, Mapping) or not isinstance(item.get(field), str)
+            for item in collection
+        ):
+            return None
+        return {item[field] for item in collection}
+
+    period_reference_ids = reference_ids("periods", "id")
+    documents = reference_ids("documents", "name")
     seen: set[str] = set()
     for collection in ("periods", "themes", "documents", "entries"):
         field = "name" if collection == "documents" else "id"
@@ -576,8 +591,8 @@ def validate_payload(payload: Mapping[str, Any]) -> list[ValidationViolation]:
                     )
                 seen.add(identity)
 
-    def reference(value: Any, path: str, known: set[str], kind: str) -> None:
-        if isinstance(value, str) and value not in known:
+    def reference(value: Any, path: str, known: set[str] | None, kind: str) -> None:
+        if known is not None and isinstance(value, str) and value not in known:
             violations.append(
                 ValidationViolation(path, f"{kind} {value!r} referenced but not defined")
             )
@@ -592,14 +607,15 @@ def validate_payload(payload: Mapping[str, Any]) -> list[ValidationViolation]:
         refs = item.get("periods")
         if isinstance(refs, list):
             for i, value in enumerate(refs):
-                reference(value, f"{path}.periods[{i}]", set(periods), "period")
+                reference(value, f"{path}.periods[{i}]", period_reference_ids, "period")
     vocabularies = payload.get("status_vocabularies")
     for path, item in records("entries"):
         for field in ("first", "last"):
-            reference(item.get(field), f"{path}.{field}", set(periods), "period")
+            reference(item.get(field), f"{path}.{field}", period_reference_ids, "period")
         first, last = item.get("first"), item.get("last")
         if (
-            isinstance(first, str)
+            period_reference_ids is not None
+            and isinstance(first, str)
             and isinstance(last, str)
             and valid_sorts.get(first, False)
             and valid_sorts.get(last, False)
@@ -636,7 +652,7 @@ def validate_payload(payload: Mapping[str, Any]) -> list[ValidationViolation]:
             if not isinstance(value, Mapping):
                 continue
             mention_path = f"{path}.mentions[{i}]"
-            reference(value.get("period"), f"{mention_path}.period", set(periods), "period")
+            reference(value.get("period"), f"{mention_path}.period", period_reference_ids, "period")
             reference(value.get("src"), f"{mention_path}.src", documents, "document")
             if "bps" in value:
                 _check_finite(violations, f"{mention_path}.bps", "bps", value["bps"])
