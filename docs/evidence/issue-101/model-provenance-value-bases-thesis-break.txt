@@ -1,0 +1,9 @@
+Deliberate-break gate (this session): inserted
+  object.__setattr__(self, 'basis', 'unknown')  # DELIBERATE BREAK
+at the start of FactRecord.__post_init__ in src/manager_mosaic/model.py so every
+explicit basis was erased to unknown.
+Command: python -m pytest tests/test_model_validation.py::test_thesis_value_bases_observed_only_and_inferred_only tests/test_model_validation.py::test_fact_provenance_replace_revalidates_and_carries_basis -q --no-cov -p no:cacheprovider
+Result under break: 2 failed (value_bases showed 'unknown' instead of
+'observed'/'inferred'; replace(..., basis='inferred').basis was 'unknown').
+Restored src/manager_mosaic/model.py unchanged (git diff empty) and reran:
+2 passed.

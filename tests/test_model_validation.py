@@ -645,6 +645,32 @@ def test_result_provenance_accessors_treat_explicit_unknown_as_unset() -> None:
     )
 
 
+def test_thesis_value_bases_observed_only_and_inferred_only() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    claim = ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0)
+    observed = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-obs", basis="observed")
+    observed_check = evaluate_claim(claim, [observed])
+    assert observed_check.value_bases == ((8.0, "ev-obs", "observed"),)
+
+    inferred = FactRecord("metric", "entity", "2025Q1", 8.0, "ev-inf", basis="inferred")
+    inferred_check = evaluate_claim(claim, [inferred])
+    assert inferred_check.value_bases == ((8.0, "ev-inf", "inferred"),)
+
+
+def test_fact_provenance_replace_revalidates_and_carries_basis() -> None:
+    from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+
+    legacy = FactRecord("metric", "entity", "2025Q1", 8.0, "ev")
+    inferred = replace(legacy, basis="inferred")
+    assert inferred.basis == "inferred"
+    assert legacy.basis == "unknown"
+    check = evaluate_claim(ThesisClaim("c", "Metric", "entity", "metric", "min", 10.0), [inferred])
+    assert check.value_bases == ((8.0, "ev", "inferred"),)
+    with pytest.raises(ValueError, match="unsupported fact basis"):
+        replace(legacy, basis="extracted")  # type: ignore[arg-type]
+
+
 def _typed_mention(**changes: Any) -> Store:
     """Exercise the retained typed API independently of raw-payload admission."""
     store = _load("minimal_store.json")
