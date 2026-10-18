@@ -16,6 +16,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
+from jsonschema import Draft202012Validator, validators
+
 PUB_STATES = frozenset({"PENDING", "COMPLETED", "TERMINATED"})
 _TRUNCATED_CURRENCY = re.compile(r"^[$€£¥][A-Za-z]+$")
 _NUMERIC_FIELDS = frozenset({"sort", "bps", "peak"})
@@ -119,6 +121,12 @@ class Store:
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> Store:
+        if _payload_structure_violations(payload):
+            violations = validate_payload(payload)
+            raise ValueError(
+                "Invalid store payload: "
+                + "; ".join(f"{v.record_id}: {v.message}" for v in violations)
+            )
         status_vocabularies = {
             kind: frozenset(values)
             for kind, values in payload.get("status_vocabularies", {}).items()
@@ -324,7 +332,7 @@ def _check_truncated_currency(
     field: str,
     value: str,
 ) -> None:
-    if value and _TRUNCATED_CURRENCY.match(value.strip()):
+    if isinstance(value, str) and value and _TRUNCATED_CURRENCY.match(value.strip()):
         violations.append(
             ValidationViolation(
                 record_id,
@@ -503,3 +511,151 @@ def load_schema(name: str = "mosaic-store-v1") -> dict[str, Any]:
     schema_file = resources.files("manager_mosaic").joinpath("schemas", f"{name}.schema.json")
     payload: dict[str, Any] = json.loads(schema_file.read_text(encoding="utf-8"))
     return payload
+
+
+def _payload_path(parts: Sequence[str | int]) -> str:
+    path = "$"
+    for part in parts:
+        path += f"[{part}]" if isinstance(part, int) else f".{part}"
+    return path
+
+
+def _payload_structure_violations(payload: Mapping[str, Any]) -> list[ValidationViolation]:
+    violations = []
+    validator_type = validators.extend(
+        Draft202012Validator,
+        type_checker=Draft202012Validator.TYPE_CHECKER.redefine(
+            "object", lambda checker, value: isinstance(value, Mapping)
+        ),
+    )
+    for error in validator_type(load_schema()).iter_errors(payload):
+        path = list(error.absolute_path)
+        if error.validator == "required" and isinstance(error.instance, Mapping):
+            missing = [key for key in error.validator_value if key not in error.instance]
+            # jsonschema emits one error per absent property, so select this one.
+            for key in missing:
+                item = ValidationViolation(_payload_path([*path, key]), "required field is missing")
+                if item not in violations:
+                    violations.append(item)
+        else:
+            violations.append(ValidationViolation(_payload_path(path), error.message))
+    return violations
+
+
+def validate_payload(payload: Mapping[str, Any]) -> list[ValidationViolation]:
+    """Collect raw structure and every semantic check with well-typed prerequisites.
+
+    Diagnostics use source paths even when a record has no usable ID. No values
+    are coerced or supplied to make malformed records constructible.
+    """
+    violations = _payload_structure_violations(payload)
+    if not isinstance(payload, Mapping):
+        return violations
+
+    def records(key: str) -> list[tuple[str, Mapping[str, Any]]]:
+        collection = payload.get(key)
+        if not isinstance(collection, list):
+            return []
+        return [
+            (f"$.{key}[{i}]", value)
+            for i, value in enumerate(collection)
+            if isinstance(value, Mapping)
+        ]
+
+    periods = {
+        item["id"]: item for _, item in records("periods") if isinstance(item.get("id"), str)
+    }
+
+    def reference_ids(key: str, field: str) -> set[str] | None:
+        collection = payload.get(key, [])
+        if not isinstance(collection, list) or any(
+            not isinstance(item, Mapping) or not isinstance(item.get(field), str)
+            for item in collection
+        ):
+            return None
+        return {item[field] for item in collection}
+
+    period_reference_ids = reference_ids("periods", "id")
+    documents = reference_ids("documents", "name")
+    seen: set[str] = set()
+    for collection in ("periods", "themes", "documents", "entries"):
+        field = "name" if collection == "documents" else "id"
+        for path, item in records(collection):
+            identity = item.get(field)
+            if isinstance(identity, str):
+                if identity in seen:
+                    violations.append(
+                        ValidationViolation(
+                            f"{path}.{field}", f"identifier {identity!r} defined twice"
+                        )
+                    )
+                seen.add(identity)
+
+    def reference(value: Any, path: str, known: set[str] | None, kind: str) -> None:
+        if known is not None and isinstance(value, str) and value not in known:
+            violations.append(
+                ValidationViolation(path, f"{kind} {value!r} referenced but not defined")
+            )
+
+    valid_sorts: dict[str, bool] = {}
+    for path, item in records("periods"):
+        if "sort" in item:
+            safe = _check_period_sort(violations, f"{path}.sort", item["sort"])
+            if isinstance(item.get("id"), str):
+                valid_sorts[item["id"]] = safe
+    for path, item in records("themes"):
+        refs = item.get("periods")
+        if isinstance(refs, list):
+            for i, value in enumerate(refs):
+                reference(value, f"{path}.periods[{i}]", period_reference_ids, "period")
+    vocabularies = payload.get("status_vocabularies")
+    for path, item in records("entries"):
+        for field in ("first", "last"):
+            reference(item.get(field), f"{path}.{field}", period_reference_ids, "period")
+        first, last = item.get("first"), item.get("last")
+        if (
+            period_reference_ids is not None
+            and isinstance(first, str)
+            and isinstance(last, str)
+            and valid_sorts.get(first, False)
+            and valid_sorts.get(last, False)
+            and periods[first]["sort"] > periods[last]["sort"]
+        ):
+            violations.append(
+                ValidationViolation(path, f"first period {first!r} is after last period {last!r}")
+            )
+        if "peak" in item:
+            _check_finite(violations, f"{path}.peak", "peak", item["peak"])
+        if isinstance(item.get("flag"), str):
+            _check_truncated_currency(violations, f"{path}.flag", "flag", item["flag"])
+        kind, status = item.get("kind"), item.get("status")
+        if isinstance(vocabularies, Mapping) and isinstance(kind, str) and isinstance(status, str):
+            vocabulary = vocabularies.get(kind)
+            if (
+                isinstance(vocabulary, list)
+                and all(isinstance(value, str) for value in vocabulary)
+                and vocabulary
+                and status not in vocabulary
+            ):
+                violations.append(
+                    ValidationViolation(
+                        f"{path}.status", f"status {status!r} is not allowed for {kind!r} entries"
+                    )
+                )
+        publication = item.get("pub")
+        if isinstance(publication, Mapping):
+            reference(publication.get("src"), f"{path}.pub.src", documents, "document")
+        mentions = item.get("mentions")
+        if not isinstance(mentions, list):
+            continue
+        for i, value in enumerate(mentions):
+            if not isinstance(value, Mapping):
+                continue
+            mention_path = f"{path}.mentions[{i}]"
+            reference(value.get("period"), f"{mention_path}.period", period_reference_ids, "period")
+            reference(value.get("src"), f"{mention_path}.src", documents, "document")
+            if "bps" in value:
+                _check_finite(violations, f"{mention_path}.bps", "bps", value["bps"])
+            if isinstance(value.get("size"), str):
+                _check_truncated_currency(violations, f"{mention_path}.size", "size", value["size"])
+    return violations

@@ -32,6 +32,7 @@ from manager_mosaic.model import (
     pub,
     theme,
     validate,
+    validate_payload,
 )
 
 __version__ = "0.1.0"
@@ -61,6 +62,7 @@ __all__ = [
     "ensure_registered_fact_keys",
     "load_fact_key_registry",
     "validate",
+    "validate_payload",
     "validate_claim_and_facts",
     "validate_evidence_object",
     "validate_fact_keys",

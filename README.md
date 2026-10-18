@@ -18,7 +18,7 @@ the [product contract](docs/PRODUCT_CONTRACT.md).
 ## Invariants taken from real failures, not from theory
 
 1. **Silence is weak evidence, never proof.** A position missing from a document is a gap, not an exit. Inferring a removal from an absence has already produced a wrong finding.
-2. **Valid is not undamaged.** A structured file can parse cleanly and still be corrupt: a text substitution once turned a dollar figure into a bare suffix, and a single mistyped identifier once made a whole record vanish from a rendered view with no error. The validator exists to catch exactly this class, and it reports every violation in one pass.
+2. **Valid is not undamaged.** A structured file can parse cleanly and still be corrupt: a text substitution once turned a dollar figure into a bare suffix, and a single mistyped identifier once made a whole record vanish from a rendered view with no error. `manager_mosaic.validate_payload(raw_mapping)` checks structure and applicable semantics before constructing a Store, reporting path-qualified violations in one pass. `Store.from_dict` rejects malformed structure with one aggregated ValueError; `validate(Store)` remains the typed semantic API.
 3. **An inference is labelled as one.** Every fact carries its source, and anything derived rather than observed is marked, so the two can never be read as the same thing.
 4. **One-click back to the document.** A fact whose evidence cannot be opened is not usable for a decision.
 

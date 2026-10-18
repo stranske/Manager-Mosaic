@@ -1,0 +1,7 @@
+Environment: BLACK_NUM_WORKERS=1 BLACK_CACHE_DIR=/tmp/issue96-black-cache
+Each included file checked individually before the complete command to avoid sandbox worker restrictions.
+Command: ['black', '--check', '--line-length', '100', '--exclude', '(\\.workflows-lib|node_modules)', '.']
+All done! ✨ 🍰 ✨
+100 files would be left unchanged.
+
+Exit code: 0
