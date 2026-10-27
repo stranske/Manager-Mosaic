@@ -61,7 +61,7 @@ rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.17.2
+ruff==0.17.3
     # via manager-mosaic (pyproject.toml)
 types-jsonschema==4.23.0.20241208
     # via manager-mosaic (pyproject.toml)
