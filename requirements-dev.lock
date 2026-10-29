@@ -20,7 +20,7 @@ jsonschema-specifications==2025.9.1
     # via jsonschema
 librt==0.16.0
     # via mypy
-mypy==2.4.0
+mypy==2.4.1
     # via manager-mosaic (pyproject.toml)
 mypy-extensions==1.1.0
     # via
@@ -42,7 +42,7 @@ pluggy==1.6.0
     #   pytest-cov
 pygments==2.19.2
     # via pytest
-pytest==9.1.1
+pytest==9.2.0
     # via
     #   manager-mosaic (pyproject.toml)
     #   pytest-cov
