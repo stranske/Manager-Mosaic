@@ -124,6 +124,22 @@ def test_exact_threshold_boundaries_are_not_flagged(
         assert discrepancies == []
 
 
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        (8000000000000033.0, 8240000000000034.0),
+        (8240000000000034.0, 8000000000000033.0),
+    ],
+)
+def test_spread_just_above_threshold_is_flagged(left: float, right: float) -> None:
+    facts = [
+        FactRecord("metric", "entity", "2024", left, "ev-a"),
+        FactRecord("metric", "entity", "2024", right, "ev-b"),
+    ]
+
+    assert len(detect_numeric_discrepancies(facts, threshold_percent=3.0)) == 1
+
+
 @pytest.mark.parametrize(("left", "right"), [(1.0, 1e308), (1e308, 1.0)])
 def test_relative_spread_float_overflow_is_flagged(left: float, right: float) -> None:
     facts = [
