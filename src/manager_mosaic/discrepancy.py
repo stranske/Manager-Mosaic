@@ -51,7 +51,11 @@ def _discrepancy_id(fact_key: str, entity_ref: str, period: PeriodGroupKey) -> s
 
 
 def _relative_spread_percent(values: Sequence[float]) -> float:
-    """Return the maximum pairwise relative spread across ``values`` in percent."""
+    """Return the maximum pairwise relative spread across ``values`` in percent.
+
+    Uses ``Fraction`` for ``|left-right|/baseline`` so exact 5%/10% boundaries stay
+    at or below the threshold under ``<=`` comparison (float division can overshoot).
+    """
     if len(values) < 2:
         return 0.0
     spread = 0.0
