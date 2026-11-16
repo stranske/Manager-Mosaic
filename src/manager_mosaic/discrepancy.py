@@ -7,6 +7,7 @@ import math
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
+from fractions import Fraction
 from typing import Literal
 
 from manager_mosaic.fact_keys import UnregisteredFactKeyError, validate_fact_keys
@@ -49,21 +50,32 @@ def _discrepancy_id(fact_key: str, entity_ref: str, period: PeriodGroupKey) -> s
     return json.dumps([fact_key, entity_ref, period], separators=(",", ":"))
 
 
-def _relative_spread_percent(values: Sequence[float]) -> float:
-    """Return the maximum pairwise relative spread across ``values`` in percent."""
+def _relative_spread_percent_exact(values: Sequence[float]) -> Fraction | None:
+    """Return exact maximum pairwise spread in percent, or ``None`` if unbounded."""
     if len(values) < 2:
-        return 0.0
-    spread = 0.0
+        return Fraction(0)
+    spread = Fraction(0)
     for left in values:
         for right in values:
             if left == right:
                 continue
             baseline = min(abs(left), abs(right))
             if baseline == 0.0:
-                return math.inf
-            normalized_difference = abs(left / baseline - right / baseline)
-            spread = max(spread, normalized_difference * 100.0)
+                return None
+            normalized_difference = abs(Fraction(left) - Fraction(right)) / Fraction(baseline)
+            spread = max(spread, normalized_difference * 100)
     return spread
+
+
+def _relative_spread_percent(values: Sequence[float]) -> float:
+    """Return maximum pairwise spread as a float, using infinity if unrepresentable."""
+    spread = _relative_spread_percent_exact(values)
+    if spread is None:
+        return math.inf
+    try:
+        return float(spread)
+    except OverflowError:
+        return math.inf
 
 
 def _period_group_key(period: str) -> PeriodGroupKey:
@@ -95,7 +107,7 @@ def detect_numeric_discrepancies(
     """
     if not math.isfinite(threshold_percent) or threshold_percent < 0:
         raise ValueError(
-            "threshold_percent must be a non-negative finite number, " f"got {threshold_percent!r}"
+            f"threshold_percent must be a non-negative finite number, got {threshold_percent!r}"
         )
     if strict_fact_keys or validate_fact_keys_opt_in:
         violations = validate_fact_keys(facts, registry=fact_key_registry)
@@ -119,8 +131,8 @@ def detect_numeric_discrepancies(
         if len(group) < 2:
             continue
         values = tuple(fact.value for fact in group)
-        spread = _relative_spread_percent(values)
-        if not math.isinf(spread) and spread <= threshold_percent:
+        exact_spread = _relative_spread_percent_exact(values)
+        if exact_spread is not None and exact_spread <= Fraction(threshold_percent):
             continue
         evidence_ids = tuple(fact.evidence_id for fact in group)
         discrepancies.append(

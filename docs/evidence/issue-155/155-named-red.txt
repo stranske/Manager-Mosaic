@@ -1,0 +1,345 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.10, pytest-9.2.0, pluggy-1.7.0
+rootdir: /home/runner/work/Manager-Mosaic/Manager-Mosaic
+configfile: pyproject.toml
+plugins: langsmith-0.14.17, cov-7.1.0, platformdirs-4.14.5, anyio-4.16.0
+collected 10 items
+
+tests/test_discrepancy_detection.py FFFFFFFF..                           [100%]
+
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[10.0-10.5-5.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=...), FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=10.5, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    10.0,
+  +                    10.5,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=10.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=10.5,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[10.5-10.0-5.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=...), FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=10.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    10.5,
+  +                    10.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=10.5,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=10.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[100.0-105.0-5.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=105.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    100.0,
+  +                    105.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=100.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=105.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[105.0-100.0-5.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=100.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    105.0,
+  +                    100.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=105.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=100.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[100.0-110.0-10.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=110.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    100.0,
+  +                    110.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=100.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=110.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[110.0-100.0-10.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=100.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    110.0,
+  +                    100.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=110.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=100.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[-100.0--105.0-5.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=... FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=-105.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    -100.0,
+  +                    -105.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=-100.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=-105.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[-105.0--100.0-5.0-False] - assert [DiscrepancyR...='unknown')))] == []
+  
+  Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=... FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=-100.0, evidence_id='ev-b', basis='unknown')))
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     DiscrepancyRecord(
+  +         discrepancy_id='["metric","entity",["raw","2024"]]',
+  +         fact_key='metric',
+  +         entity_ref='entity',
+  +         period='2024',
+  +         values=(
+  +                    -105.0,
+  +                    -100.0,
+  +                ),
+  +         evidence_ids=(
+  +                          'ev-a',
+  +                          'ev-b',
+  +                      ),
+  +         kind='numeric_delta',
+  +         contributing_facts=(
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=-105.0,
+  +                                    evidence_id='ev-a',
+  +                                    basis='unknown',
+  +                                ),
+  +                                FactRecord(
+  +                                    fact_key='metric',
+  +                                    entity_ref='entity',
+  +                                    period='2024',
+  +                                    value=-100.0,
+  +                                    evidence_id='ev-b',
+  +                                    basis='unknown',
+  +                                ),
+  +                            ),
+  +     ),
+  + ]
+=================== 8 failed, 2 passed, 13 warnings in 0.06s ===================

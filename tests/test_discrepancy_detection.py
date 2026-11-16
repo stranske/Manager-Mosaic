@@ -9,7 +9,11 @@ from itertools import permutations
 
 import pytest
 
-from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+from manager_mosaic.discrepancy import (
+    FactRecord,
+    _relative_spread_percent,
+    detect_numeric_discrepancies,
+)
 
 
 def _irr_pair() -> list[FactRecord]:
@@ -82,6 +86,71 @@ def test_threshold_boundary_equality_and_just_over() -> None:
 
     assert detect_numeric_discrepancies(facts, threshold_percent=50.0) == []
     assert len(detect_numeric_discrepancies(facts, threshold_percent=49.0)) == 1
+
+
+def test_relative_spread_percent_is_exact_at_five_and_ten_percent_boundaries() -> None:
+    assert _relative_spread_percent((10.0, 10.5)) == 5.0
+    assert _relative_spread_percent((100.0, 105.0)) == 5.0
+    assert _relative_spread_percent((100.0, 110.0)) == 10.0
+    assert _relative_spread_percent((-100.0, -105.0)) == 5.0
+
+
+@pytest.mark.parametrize(
+    ("left", "right", "threshold", "expect_flagged"),
+    [
+        (10.0, 10.5, 5.0, False),
+        (10.5, 10.0, 5.0, False),
+        (100.0, 105.0, 5.0, False),
+        (105.0, 100.0, 5.0, False),
+        (100.0, 110.0, 10.0, False),
+        (110.0, 100.0, 10.0, False),
+        (-100.0, -105.0, 5.0, False),
+        (-105.0, -100.0, 5.0, False),
+        (100.0, 104.999, 5.0, False),
+        (100.0, 105.001, 5.0, True),
+    ],
+)
+def test_exact_threshold_boundaries_are_not_flagged(
+    left: float, right: float, threshold: float, expect_flagged: bool
+) -> None:
+    facts = [
+        FactRecord("metric", "entity", "2024", left, "ev-a"),
+        FactRecord("metric", "entity", "2024", right, "ev-b"),
+    ]
+    discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+    if expect_flagged:
+        assert len(discrepancies) == 1
+    else:
+        assert discrepancies == []
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        (8000000000000033.0, 8240000000000034.0),
+        (8240000000000034.0, 8000000000000033.0),
+    ],
+)
+def test_spread_just_above_threshold_is_flagged(left: float, right: float) -> None:
+    facts = [
+        FactRecord("metric", "entity", "2024", left, "ev-a"),
+        FactRecord("metric", "entity", "2024", right, "ev-b"),
+    ]
+
+    assert len(detect_numeric_discrepancies(facts, threshold_percent=3.0)) == 1
+
+
+@pytest.mark.parametrize(("left", "right"), [(1.0, 1e308), (1e308, 1.0)])
+def test_relative_spread_float_overflow_is_flagged(left: float, right: float) -> None:
+    facts = [
+        FactRecord("metric", "entity", "2024", left, "ev-a"),
+        FactRecord("metric", "entity", "2024", right, "ev-b"),
+    ]
+
+    discrepancies = detect_numeric_discrepancies(facts, threshold_percent=5.0)
+
+    assert len(discrepancies) == 1
+    assert discrepancies[0].kind == "numeric_delta"
 
 
 def test_zero_baseline_flags_unbounded_spread() -> None:
