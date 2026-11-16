@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 import math
 from collections import defaultdict
-from fractions import Fraction
 from collections.abc import Sequence
 from dataclasses import dataclass
+from fractions import Fraction
 from typing import Literal
 
 from manager_mosaic.fact_keys import UnregisteredFactKeyError, validate_fact_keys
@@ -96,7 +96,7 @@ def detect_numeric_discrepancies(
     """
     if not math.isfinite(threshold_percent) or threshold_percent < 0:
         raise ValueError(
-            "threshold_percent must be a non-negative finite number, " f"got {threshold_percent!r}"
+            f"threshold_percent must be a non-negative finite number, got {threshold_percent!r}"
         )
     if strict_fact_keys or validate_fact_keys_opt_in:
         violations = validate_fact_keys(facts, registry=fact_key_registry)
