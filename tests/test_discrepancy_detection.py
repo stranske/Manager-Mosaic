@@ -124,6 +124,19 @@ def test_exact_threshold_boundaries_are_not_flagged(
         assert discrepancies == []
 
 
+@pytest.mark.parametrize(("left", "right"), [(1.0, 1e308), (1e308, 1.0)])
+def test_relative_spread_float_overflow_is_flagged(left: float, right: float) -> None:
+    facts = [
+        FactRecord("metric", "entity", "2024", left, "ev-a"),
+        FactRecord("metric", "entity", "2024", right, "ev-b"),
+    ]
+
+    discrepancies = detect_numeric_discrepancies(facts, threshold_percent=5.0)
+
+    assert len(discrepancies) == 1
+    assert discrepancies[0].kind == "numeric_delta"
+
+
 def test_zero_baseline_flags_unbounded_spread() -> None:
     facts = [
         FactRecord("metric", "entity", "2024", 0.0, "ev-a"),

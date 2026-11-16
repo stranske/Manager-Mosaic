@@ -67,7 +67,11 @@ def _relative_spread_percent(values: Sequence[float]) -> float:
             if baseline == 0.0:
                 return math.inf
             normalized_difference = abs(Fraction(left) - Fraction(right)) / Fraction(baseline)
-            spread = max(spread, float(normalized_difference * 100))
+            try:
+                pair_spread = float(normalized_difference * 100)
+            except OverflowError:
+                return math.inf
+            spread = max(spread, pair_spread)
     return spread
 
 
