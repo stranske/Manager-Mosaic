@@ -15,4 +15,6 @@ spread = max(spread, normalized_difference * 100.0)
 
 Replaced with `abs(Fraction(left) - Fraction(right)) / Fraction(baseline)` so exact 5%/10% boundaries stay at or below the threshold under `<=` comparison.
 
-[GREEN output](155-named-green.txt): **10 passed**.
+[GREEN output](155-named-green.txt): **10 passed** (re-captured on the CI runner after restore).
+
+`_relative_spread_percent` unit probe: `test_relative_spread_percent_is_exact_at_five_and_ten_percent_boundaries` locks exact 5%/10% spread before threshold comparison.

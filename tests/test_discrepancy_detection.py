@@ -9,7 +9,11 @@ from itertools import permutations
 
 import pytest
 
-from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+from manager_mosaic.discrepancy import (
+    FactRecord,
+    _relative_spread_percent,
+    detect_numeric_discrepancies,
+)
 
 
 def _irr_pair() -> list[FactRecord]:
@@ -82,6 +86,13 @@ def test_threshold_boundary_equality_and_just_over() -> None:
 
     assert detect_numeric_discrepancies(facts, threshold_percent=50.0) == []
     assert len(detect_numeric_discrepancies(facts, threshold_percent=49.0)) == 1
+
+
+def test_relative_spread_percent_is_exact_at_five_and_ten_percent_boundaries() -> None:
+    assert _relative_spread_percent((10.0, 10.5)) == 5.0
+    assert _relative_spread_percent((100.0, 105.0)) == 5.0
+    assert _relative_spread_percent((100.0, 110.0)) == 10.0
+    assert _relative_spread_percent((-100.0, -105.0)) == 5.0
 
 
 @pytest.mark.parametrize(
