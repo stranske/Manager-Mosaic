@@ -84,6 +84,35 @@ def test_threshold_boundary_equality_and_just_over() -> None:
     assert len(detect_numeric_discrepancies(facts, threshold_percent=49.0)) == 1
 
 
+@pytest.mark.parametrize(
+    ("left", "right", "threshold", "expect_flagged"),
+    [
+        (10.0, 10.5, 5.0, False),
+        (10.5, 10.0, 5.0, False),
+        (100.0, 105.0, 5.0, False),
+        (105.0, 100.0, 5.0, False),
+        (100.0, 110.0, 10.0, False),
+        (110.0, 100.0, 10.0, False),
+        (-100.0, -105.0, 5.0, False),
+        (-105.0, -100.0, 5.0, False),
+        (100.0, 104.999, 5.0, False),
+        (100.0, 105.001, 5.0, True),
+    ],
+)
+def test_exact_threshold_boundaries_are_not_flagged(
+    left: float, right: float, threshold: float, expect_flagged: bool
+) -> None:
+    facts = [
+        FactRecord("metric", "entity", "2024", left, "ev-a"),
+        FactRecord("metric", "entity", "2024", right, "ev-b"),
+    ]
+    discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+    if expect_flagged:
+        assert len(discrepancies) == 1
+    else:
+        assert discrepancies == []
+
+
 def test_zero_baseline_flags_unbounded_spread() -> None:
     facts = [
         FactRecord("metric", "entity", "2024", 0.0, "ev-a"),

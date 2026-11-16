@@ -1,0 +1,321 @@
+/opt/anaconda3/lib/python3.12/site-packages/pytest_asyncio/plugin.py:300: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the "fixture" caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to "function" scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.2.0, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/orchestrator/worktrees/stranske__Manager-Mosaic__155__opener
+configfile: pyproject.toml
+plugins: hypothesis-6.161.5, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, langsmith-0.10.10, pytest_httpserver-1.1.3, anyio-4.16.0, regressions-2.11.0, asyncio-1.4.1.post1, Faker-40.39.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 10 items
+
+tests/test_discrepancy_detection.py FFFFFFFF..                           [100%]
+
+=================================== FAILURES ===================================
+_____ test_exact_threshold_boundaries_are_not_flagged[10.0-10.5-5.0-False] _____
+
+left = 10.0, right = 10.5, threshold = 5.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=...), FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=10.5, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+_____ test_exact_threshold_boundaries_are_not_flagged[10.5-10.0-5.0-False] _____
+
+left = 10.5, right = 10.0, threshold = 5.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=...), FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=10.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+____ test_exact_threshold_boundaries_are_not_flagged[100.0-105.0-5.0-False] ____
+
+left = 100.0, right = 105.0, threshold = 5.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=105.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+____ test_exact_threshold_boundaries_are_not_flagged[105.0-100.0-5.0-False] ____
+
+left = 105.0, right = 100.0, threshold = 5.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=100.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+___ test_exact_threshold_boundaries_are_not_flagged[100.0-110.0-10.0-False] ____
+
+left = 100.0, right = 110.0, threshold = 10.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=110.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+___ test_exact_threshold_boundaries_are_not_flagged[110.0-100.0-10.0-False] ____
+
+left = 110.0, right = 100.0, threshold = 10.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=..., FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=100.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+___ test_exact_threshold_boundaries_are_not_flagged[-100.0--105.0-5.0-False] ___
+
+left = -100.0, right = -105.0, threshold = 5.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=... FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=-105.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+___ test_exact_threshold_boundaries_are_not_flagged[-105.0--100.0-5.0-False] ___
+
+left = -105.0, right = -100.0, threshold = 5.0, expect_flagged = False
+
+    @pytest.mark.parametrize(
+        ("left", "right", "threshold", "expect_flagged"),
+        [
+            (10.0, 10.5, 5.0, False),
+            (10.5, 10.0, 5.0, False),
+            (100.0, 105.0, 5.0, False),
+            (105.0, 100.0, 5.0, False),
+            (100.0, 110.0, 10.0, False),
+            (110.0, 100.0, 10.0, False),
+            (-100.0, -105.0, 5.0, False),
+            (-105.0, -100.0, 5.0, False),
+            (100.0, 104.999, 5.0, False),
+            (100.0, 105.001, 5.0, True),
+        ],
+    )
+    def test_exact_threshold_boundaries_are_not_flagged(
+        left: float, right: float, threshold: float, expect_flagged: bool
+    ) -> None:
+        facts = [
+            FactRecord("metric", "entity", "2024", left, "ev-a"),
+            FactRecord("metric", "entity", "2024", right, "ev-b"),
+        ]
+        discrepancies = detect_numeric_discrepancies(facts, threshold_percent=threshold)
+        if expect_flagged:
+            assert len(discrepancies) == 1
+        else:
+>           assert discrepancies == []
+E           assert [DiscrepancyR...='unknown')))] == []
+E             
+E             Left contains one more item: DiscrepancyRecord(discrepancy_id='["metric","entity",["raw","2024"]]', fact_key='metric', entity_ref='entity', period=... FactRecord(fact_key='metric', entity_ref='entity', period='2024', value=-100.0, evidence_id='ev-b', basis='unknown')))
+E             Use -v to get more diff
+
+tests/test_discrepancy_detection.py:113: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[10.0-10.5-5.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[10.5-10.0-5.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[100.0-105.0-5.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[105.0-100.0-5.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[100.0-110.0-10.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[110.0-100.0-10.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[-100.0--105.0-5.0-False]
+FAILED tests/test_discrepancy_detection.py::test_exact_threshold_boundaries_are_not_flagged[-105.0--100.0-5.0-False]
+========================= 8 failed, 2 passed in 0.25s ==========================

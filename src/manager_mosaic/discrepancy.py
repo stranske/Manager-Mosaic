@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 from collections import defaultdict
+from fractions import Fraction
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
@@ -61,8 +62,10 @@ def _relative_spread_percent(values: Sequence[float]) -> float:
             baseline = min(abs(left), abs(right))
             if baseline == 0.0:
                 return math.inf
-            normalized_difference = abs(left / baseline - right / baseline)
-            spread = max(spread, normalized_difference * 100.0)
+            normalized_difference = abs(Fraction(left) - Fraction(right)) / Fraction(
+                baseline
+            )
+            spread = max(spread, float(normalized_difference * 100))
     return spread
 
 
