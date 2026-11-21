@@ -2,13 +2,14 @@
 
 import json
 import re
+from dataclasses import replace
 from importlib import resources
 from pathlib import Path
 
 import pytest
 
-from manager_mosaic import fact_keys
-from manager_mosaic.discrepancy import FactRecord, detect_numeric_discrepancies
+from manager_mosaic import fact_keys, validate_evidence_object
+from manager_mosaic.discrepancy import DiscrepancyRecord, FactRecord, detect_numeric_discrepancies
 from manager_mosaic.fact_keys import (
     UnregisteredFactKeyError,
     ensure_registered_fact_keys,
@@ -17,7 +18,8 @@ from manager_mosaic.fact_keys import (
     validate_fact_keys,
     validate_facts_and_claims,
 )
-from manager_mosaic.thesis import ThesisClaim, evaluate_claim
+from manager_mosaic.model import FactRecord as ModelFactRecord
+from manager_mosaic.thesis import ThesisCheck, ThesisClaim, evaluate_claim
 
 _FIXTURE_FACT_KEY_PATTERN = re.compile(r'fact_key\s*=\s*"([^"]+)"')
 
@@ -492,3 +494,151 @@ def test_source_and_packaged_fact_key_registries_match() -> None:
     )
 
     assert source_payload == packaged_payload
+
+
+def _fact_with_identity(
+    constructor: type[FactRecord], field_name: str, field_value: str
+) -> FactRecord:
+    values = {
+        "fact_key": "performance.irr",
+        "entity_ref": "fund-alpha",
+        "evidence_id": "ev-irr-1",
+    }
+    values[field_name] = field_value
+    return constructor(
+        fact_key=values["fact_key"],
+        entity_ref=values["entity_ref"],
+        period="2024Q4",
+        value=12.0,
+        evidence_id=values["evidence_id"],
+    )
+
+
+def _claim_with_identity(field_name: str, field_value: str) -> ThesisClaim:
+    values = {
+        "claim_id": "irr-floor",
+        "entity_ref": "fund-alpha",
+        "fact_key": "performance.irr",
+    }
+    values[field_name] = field_value
+    return ThesisClaim(
+        claim_id=values["claim_id"],
+        claim_text="Fund IRR should remain at or above 10%",
+        entity_ref=values["entity_ref"],
+        fact_key=values["fact_key"],
+        expected_pattern="min",
+        threshold=10.0,
+    )
+
+
+@pytest.mark.parametrize(
+    ("target", "field_name", "valid_value"),
+    [
+        pytest.param("fact", "fact_key", "performance.irr", id="fact-fact_key"),
+        pytest.param("fact", "entity_ref", "fund-alpha", id="fact-entity_ref"),
+        pytest.param("fact", "evidence_id", "ev-irr-1", id="fact-evidence_id"),
+        pytest.param("thesis", "claim_id", "irr-floor", id="thesis-claim_id"),
+        pytest.param("thesis", "entity_ref", "fund-alpha", id="thesis-entity_ref"),
+        pytest.param("thesis", "fact_key", "performance.irr", id="thesis-fact_key"),
+        pytest.param("compatibility", "", "", id="compatibility-controls"),
+    ],
+)
+def test_fact_and_thesis_reject_blank_required_ids(
+    target: str, field_name: str, valid_value: str
+) -> None:
+    """Reject empty/whitespace required local IDs while keeping legacy and optional contracts."""
+    import manager_mosaic
+
+    blank_values = ("", "   ", "\t\n")
+    if target == "fact":
+        for constructor in (manager_mosaic.FactRecord, ModelFactRecord, FactRecord):
+            valid_fact = _fact_with_identity(constructor, field_name, valid_value)
+            assert getattr(valid_fact, field_name) == valid_value
+            assert valid_fact.basis == "unknown"
+            assert validate_fact_keys([valid_fact]) == []
+            for blank in blank_values:
+                with pytest.raises(ValueError, match=field_name):
+                    _fact_with_identity(constructor, field_name, blank)
+        valid_model_fact = _fact_with_identity(ModelFactRecord, field_name, valid_value)
+        for blank in blank_values:
+            if field_name == "fact_key":
+                with pytest.raises(ValueError, match="fact_key"):
+                    replace(valid_model_fact, fact_key=blank)
+            elif field_name == "entity_ref":
+                with pytest.raises(ValueError, match="entity_ref"):
+                    replace(valid_model_fact, entity_ref=blank)
+            else:
+                with pytest.raises(ValueError, match="evidence_id"):
+                    replace(valid_model_fact, evidence_id=blank)
+        return
+
+    if target == "thesis":
+        valid_claim = _claim_with_identity(field_name, valid_value)
+        assert getattr(valid_claim, field_name) == valid_value
+        assert validate_fact_keys(claims=[valid_claim]) == []
+        matching_fact = manager_mosaic.FactRecord(
+            fact_key=valid_claim.fact_key,
+            entity_ref=valid_claim.entity_ref,
+            period="2024Q4",
+            value=12.0,
+            evidence_id="ev-irr-1",
+        )
+        assert evaluate_claim(valid_claim, [matching_fact]).verdict == "supported"
+        for blank in blank_values:
+            with pytest.raises(ValueError, match=field_name):
+                _claim_with_identity(field_name, blank)
+            if field_name == "claim_id":
+                with pytest.raises(ValueError, match="claim_id"):
+                    replace(valid_claim, claim_id=blank)
+            elif field_name == "entity_ref":
+                with pytest.raises(ValueError, match="entity_ref"):
+                    replace(valid_claim, entity_ref=blank)
+            else:
+                with pytest.raises(ValueError, match="fact_key"):
+                    replace(valid_claim, fact_key=blank)
+        return
+
+    # Compatibility controls: valid legacy local inputs and legitimate optional IDs.
+    legacy_fact_a = FactRecord("legacy.unregistered_metric", "fund-alpha", "", 10.0, "ev-leg-a")
+    legacy_fact_b = manager_mosaic.FactRecord(
+        "legacy.unregistered_metric", "fund-alpha", "", 20.0, "ev-leg-b", basis="observed"
+    )
+    padded_period_fact = ModelFactRecord(
+        "performance.irr", "fund-alpha", " 2025q1 ", 12.0, "ev-padded"
+    )
+    assert legacy_fact_a.basis == "unknown"
+    assert padded_period_fact.period == " 2025q1 "
+    assert len(detect_numeric_discrepancies([legacy_fact_a, legacy_fact_b])) == 1
+
+    legacy_claim = ThesisClaim(
+        claim_id="legacy-claim",
+        claim_text="",
+        entity_ref="fund-alpha",
+        fact_key="legacy.unregistered_metric",
+        expected_pattern="min",
+        threshold=10.0,
+    )
+    absent_check = evaluate_claim(legacy_claim, [])
+    assert absent_check == ThesisCheck("legacy-claim", "insufficient_evidence", ())
+    assert absent_check.evidence_ids == ()
+    assert absent_check.contributing_facts == ()
+    legacy_discrepancy = DiscrepancyRecord(
+        "disc-1",
+        "performance.irr",
+        "fund-alpha",
+        "2024Q4",
+        (10.0, 20.0),
+        ("ev-1", "ev-2"),
+        "numeric_delta",
+    )
+    assert legacy_discrepancy.contributing_facts == ()
+
+    legacy_evidence = {
+        "schema_version": "evidence-object/v1",
+        "evidence_id": "ev-legacy-1",
+        "fact_ref": "performance.irr",
+        "source_id": "doc-1",
+        "method": "parser",
+        "excerpt": None,
+    }
+    assert validate_evidence_object(legacy_evidence) == []

@@ -25,6 +25,11 @@ FactBasis = Literal["observed", "inferred", "unknown"]
 FACT_BASES: tuple[FactBasis, ...] = ("observed", "inferred", "unknown")
 
 
+def _require_non_blank_id(field_name: str, value: object) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must be a non-blank string, got {value!r}")
+
+
 @dataclass(frozen=True)
 class FactRecord:
     """A numeric assertion with a caller-supplied basis, independent of evidence method.
@@ -41,6 +46,9 @@ class FactRecord:
     basis: FactBasis = "unknown"
 
     def __post_init__(self) -> None:
+        _require_non_blank_id("fact_key", self.fact_key)
+        _require_non_blank_id("entity_ref", self.entity_ref)
+        _require_non_blank_id("evidence_id", self.evidence_id)
         if self.basis not in FACT_BASES:
             raise ValueError(
                 f"unsupported fact basis: {self.basis!r}; "
