@@ -12,7 +12,7 @@ from manager_mosaic.fact_keys import (
     UnregisteredFactKeyError,
     validate_fact_keys,
 )
-from manager_mosaic.model import FactBasis, FactRecord
+from manager_mosaic.model import FactBasis, FactRecord, _require_non_blank_id
 from manager_mosaic.periods import period_chronology_key
 
 ThesisVerdict = Literal[
@@ -34,6 +34,9 @@ class ThesisClaim:
     threshold: float
 
     def __post_init__(self) -> None:
+        _require_non_blank_id("claim_id", self.claim_id)
+        _require_non_blank_id("entity_ref", self.entity_ref)
+        _require_non_blank_id("fact_key", self.fact_key)
         if not math.isfinite(self.threshold):
             raise ValueError(f"threshold must be finite, got {self.threshold!r}")
 
