@@ -5,6 +5,7 @@ import re
 from dataclasses import replace
 from importlib import resources
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -497,9 +498,9 @@ def test_source_and_packaged_fact_key_registries_match() -> None:
 
 
 def _fact_with_identity(
-    constructor: type[FactRecord], field_name: str, field_value: str
+    constructor: type[FactRecord], field_name: str, field_value: Any
 ) -> FactRecord:
-    values = {
+    values: dict[str, Any] = {
         "fact_key": "performance.irr",
         "entity_ref": "fund-alpha",
         "evidence_id": "ev-irr-1",
@@ -514,8 +515,8 @@ def _fact_with_identity(
     )
 
 
-def _claim_with_identity(field_name: str, field_value: str) -> ThesisClaim:
-    values = {
+def _claim_with_identity(field_name: str, field_value: Any) -> ThesisClaim:
+    values: dict[str, Any] = {
         "claim_id": "irr-floor",
         "entity_ref": "fund-alpha",
         "fact_key": "performance.irr",
@@ -546,30 +547,23 @@ def _claim_with_identity(field_name: str, field_value: str) -> ThesisClaim:
 def test_fact_and_thesis_reject_blank_required_ids(
     target: str, field_name: str, valid_value: str
 ) -> None:
-    """Reject empty/whitespace required local IDs while keeping legacy and optional contracts."""
+    """Reject empty, whitespace, and non-string required IDs while preserving legacy contracts."""
     import manager_mosaic
 
-    blank_values = ("", "   ", "\t\n")
+    invalid_values: tuple[Any, ...] = ("", "   ", "\t\n", None, 0, b"id")
     if target == "fact":
         for constructor in (manager_mosaic.FactRecord, ModelFactRecord, FactRecord):
             valid_fact = _fact_with_identity(constructor, field_name, valid_value)
             assert getattr(valid_fact, field_name) == valid_value
             assert valid_fact.basis == "unknown"
             assert validate_fact_keys([valid_fact]) == []
-            for blank in blank_values:
+            for invalid in invalid_values:
                 with pytest.raises(ValueError, match=field_name):
-                    _fact_with_identity(constructor, field_name, blank)
+                    _fact_with_identity(constructor, field_name, invalid)
         valid_model_fact = _fact_with_identity(ModelFactRecord, field_name, valid_value)
-        for blank in blank_values:
-            if field_name == "fact_key":
-                with pytest.raises(ValueError, match="fact_key"):
-                    replace(valid_model_fact, fact_key=blank)
-            elif field_name == "entity_ref":
-                with pytest.raises(ValueError, match="entity_ref"):
-                    replace(valid_model_fact, entity_ref=blank)
-            else:
-                with pytest.raises(ValueError, match="evidence_id"):
-                    replace(valid_model_fact, evidence_id=blank)
+        for invalid in invalid_values:
+            with pytest.raises(ValueError, match=field_name):
+                replace(valid_model_fact, **{field_name: invalid})
         return
 
     if target == "thesis":
@@ -584,18 +578,11 @@ def test_fact_and_thesis_reject_blank_required_ids(
             evidence_id="ev-irr-1",
         )
         assert evaluate_claim(valid_claim, [matching_fact]).verdict == "supported"
-        for blank in blank_values:
+        for invalid in invalid_values:
             with pytest.raises(ValueError, match=field_name):
-                _claim_with_identity(field_name, blank)
-            if field_name == "claim_id":
-                with pytest.raises(ValueError, match="claim_id"):
-                    replace(valid_claim, claim_id=blank)
-            elif field_name == "entity_ref":
-                with pytest.raises(ValueError, match="entity_ref"):
-                    replace(valid_claim, entity_ref=blank)
-            else:
-                with pytest.raises(ValueError, match="fact_key"):
-                    replace(valid_claim, fact_key=blank)
+                _claim_with_identity(field_name, invalid)
+            with pytest.raises(ValueError, match=field_name):
+                replace(valid_claim, **{field_name: invalid})
         return
 
     # Compatibility controls: valid legacy local inputs and legitimate optional IDs.
