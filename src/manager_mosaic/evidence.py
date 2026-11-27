@@ -20,14 +20,19 @@ def load_evidence_schema() -> dict[str, Any]:
     return load_schema("evidence-object-v1")
 
 
-def validate_evidence_object(payload: dict[str, Any]) -> list[str]:
+def validate_evidence_object(payload: Any) -> list[str]:
     """Return all schema and document-identity violations for an evidence object.
 
-    An empty list means the payload is valid. The ``excerpt`` key must be
-    present even when its value is ``null``; a wholly absent key is rejected.
+    ``payload`` is any parsed-JSON value (for example the result of
+    ``json.load``), not only a mapping. An empty list means the payload is
+    valid. A non-object root (``null``, an array, a number, a boolean or a
+    string) is reported as the schema's root type violation rather than
+    raising. For object roots, the ``excerpt`` key must be present even when
+    its value is ``null``; a wholly absent key is rejected.
     """
     violations: list[str] = []
-    if "excerpt" not in payload:
+    is_object = isinstance(payload, dict)
+    if is_object and "excerpt" not in payload:
         violations.append(
             "excerpt key must be present (string or explicit null); positional anchors alone are insufficient"
         )
@@ -35,7 +40,8 @@ def validate_evidence_object(payload: dict[str, Any]) -> list[str]:
     validator = Draft202012Validator(load_evidence_schema())
     for error in sorted(validator.iter_errors(payload), key=lambda item: list(item.path)):
         violations.append(error.message)
-    violations.extend(_check_document_identity(payload))
+    if is_object:
+        violations.extend(_check_document_identity(payload))
     return violations
 
 

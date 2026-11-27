@@ -67,6 +67,15 @@ def test_validate_evidence_object_reports_every_violation() -> None:
         assert any(key in message for message in violations), key
 
 
+@pytest.mark.parametrize("payload", [None, [], 3, True, "text"])
+def test_validate_evidence_object_reports_non_object_root(payload: Any) -> None:
+    """Parsed JSON with a non-object root yields the schema type diagnostic."""
+    violations = validate_evidence_object(payload)
+
+    assert violations
+    assert any("is not of type 'object'" in message for message in violations)
+
+
 def test_validate_evidence_object_reports_violations_at_mixed_depths() -> None:
     """Violations nested at different paths are all returned, in path order."""
     payload = {
